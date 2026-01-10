@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Hokkaido 2026 Trip</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Google Fonts: Noto Sans JP -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Noto Sans JP', 'sans-serif'],
+                    },
+                    colors: {
+                        'jp-navy': '#1a2b4c',
+                        'jp-red': '#bc002d',
+                        'jp-snow': '#f4f7f6',
+                        'jp-dark': '#1e1e1e',
+                        'jp-card-dark': '#2a2a2a'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { -webkit-tap-highlight-color: transparent; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        .glass-effect {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-jp-snow dark:bg-jp-dark transition-colors duration-300 font-sans text-slate-800 dark:text-slate-100 h-screen overflow-hidden flex flex-col">
+
+    <div id="app" class="flex flex-col h-full relative">
+        
+        <!-- Header / Status Bar Area -->
+        <header class="pt-12 pb-4 px-6 flex justify-between items-center z-20 bg-white/80 dark:bg-jp-dark/80 glass-effect sticky top-0 border-b border-gray-200 dark:border-gray-800">
+            <div>
+                <h1 class="text-xs font-bold tracking-widest text-gray-400 uppercase mb-1">HOKKAIDO 2026</h1>
+                <div class="text-xl font-bold flex items-center gap-2">
+                    <span v-if="currentTab === 'itinerary'">{{ currentDayTitle }}</span>
+                    <span v-else-if="currentTab === 'tools'">旅行工具箱</span>
+                    <span v-else-if="currentTab === 'esim'">eSIM 設定</span>
+                    <span v-else-if="currentTab === 'insurance'">保險憑證</span>
+                </div>
+            </div>
+            <button @click="toggleDarkMode" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center shadow-sm transition-transform active:scale-95">
+                <i :class="isDark ? 'fa-sun text-yellow-400' : 'fa-moon text-jp-navy'" class="fas"></i>
+            </button>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto hide-scrollbar pb-24 px-4 scroll-smooth">
+            
+            <!-- Tab 1: 行程 (Itinerary) -->
+            <div v-show="currentTab === 'itinerary'" class="space-y-6 pt-4">
+                
+                <!-- Weather Widget -->
+                <div class="bg-gradient-to-r from-blue-500 to-cyan-400 rounded-2xl p-4 text-white shadow-lg flex justify-between items-center relative overflow-hidden">
+                    <div class="z-10">
+                        <div class="text-sm opacity-90">{{ activeDayDate }}</div>
+                        <div class="text-3xl font-bold mt-1">-4°C <span class="text-lg font-normal">雪</span></div>
+                        <div class="text-xs mt-1 opacity-80"><i class="fas fa-map-marker-alt mr-1"></i>{{ days[activeDayIndex].location }}</div>
+                    </div>
+                    <i class="fas fa-snowflake text-6xl opacity-20 absolute -right-2 -bottom-4"></i>
+                </div>
+
+                <!-- Date Scroller -->
+                <div class="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+                    <button v-for="(day, index) in days" :key="index" 
+                        @click="activeDayIndex = index"
+                        :class="activeDayIndex === index ? 'bg-jp-navy text-white shadow-md transform scale-105' : 'bg-white dark:bg-jp-card-dark text-gray-500 dark:text-gray-400'"
+                        class="flex-shrink-0 px-4 py-3 rounded-xl flex flex-col items-center min-w-[70px] transition-all duration-300 border border-transparent dark:border-gray-700">
+                        <span class="text-xs font-medium">Day {{ index + 1 }}</span>
+                        <span class="text-lg font-bold">{{ day.shortDate }}</span>
+                    </button>
+                </div>
+
+                <!-- Timeline -->
+                <div class="space-y-4 relative pl-4 border-l-2 border-gray-200 dark:border-gray-700 ml-2">
+                    <div v-for="(event, eIndex) in days[activeDayIndex].events" :key="eIndex" class="relative pl-6 pb-2 group">
+                        <!-- Timeline Dot -->
+                        <div class="absolute -left-[21px] top-1 w-10 h-10 rounded-full border-4 border-jp-snow dark:border-jp-dark flex items-center justify-center z-10"
+                             :class="getCategoryColor(event.type)">
+                            <i :class="getCategoryIcon(event.type)" class="text-white text-xs"></i>
+                        </div>
+
+                        <!-- Card -->
+                        <div class="bg-white dark:bg-jp-card-dark rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 transition-all active:scale-[0.99]">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded">{{ event.time }}</span>
+                                    <span v-if="event.tag" class="text-xs font-bold text-jp-red bg-red-50 dark:bg-red-900/30 px-2 py-0.5 rounded border border-red-100 dark:border-red-800">{{ event.tag }}</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button @click="toggleEdit(activeDayIndex, eIndex)" class="text-gray-400 hover:text-blue-500">
+                                        <i :class="event.isEditing ? 'fas fa-check text-green-500' : 'fas fa-pen'"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Content -->
+                            <div v-if="!event.isEditing">
+                                <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-1 leading-tight">{{ event.title }}</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-3 whitespace-pre-line leading-relaxed">{{ event.desc }}</p>
+                            </div>
+                            <div v-else class="space-y-2 mb-3">
+                                <input v-model="event.title" class="w-full bg-gray-50 dark:bg-gray-700 rounded p-2 text-sm border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <textarea v-model="event.desc" rows="3" class="w-full bg-gray-50 dark:bg-gray-700 rounded p-2 text-sm border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                            </div>
+
+                            <!-- Highlights -->
+                            <div v-if="event.highlights && event.highlights.length > 0" class="flex flex-wrap gap-2 mb-3">
+                                <span v-for="hl in event.highlights" class="text-xs font-medium text-jp-navy dark:text-blue-200 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-md">
+                                    {{ hl }}
+                                </span>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex gap-2 mt-2">
+                                <button v-if="event.location" @click="openMap(event.location)" class="flex-1 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-jp-navy dark:text-white text-xs font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
+                                    <i class="fas fa-location-arrow text-blue-500"></i> 導航
+                                </button>
+                                <button v-if="event.link" @click="openLink(event.link)" class="flex-1 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 text-xs font-bold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
+                                    <i class="fas fa-link"></i> 資訊
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: 旅行工具箱 (Tools) -->
+            <div v-show="currentTab === 'tools'" class="space-y-6 pt-4">
+                
+                <!-- Flight Card -->
+                <div class="bg-white dark:bg-jp-card-dark rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
+                    <h3 class="text-sm font-bold text-gray-400 uppercase mb-4 flex items-center gap-2"><i class="fas fa-plane"></i> 航班資訊</h3>
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold">TPE</div>
+                            <div class="text-xs text-gray-500">05:50</div>
+                        </div>
+                        <div class="flex-1 px-4 flex flex-col items-center">
+                            <span class="text-xs text-gray-400 mb-1">4h 40m</span>
+                            <div class="w-full h-0.5 bg-gray-300 relative">
+                                <i class="fas fa-plane absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                            </div>
+                            <span class="text-xs font-bold text-jp-navy dark:text-blue-300 mt-1">去程 1/16</span>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold">CTS</div>
+                            <div class="text-xs text-gray-500">新千歲</div>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold">CTS</div>
+                            <div class="text-xs text-gray-500">11:30</div>
+                        </div>
+                        <div class="flex-1 px-4 flex flex-col items-center">
+                            <span class="text-xs text-gray-400 mb-1">4h 40m</span>
+                            <div class="w-full h-0.5 bg-gray-300 relative">
+                                <i class="fas fa-plane absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-400 text-xs rotate-180"></i>
+                            </div>
+                            <span class="text-xs font-bold text-jp-navy dark:text-blue-300 mt-1">回程 1/20</span>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold">TPE</div>
+                            <div class="text-xs text-gray-500">桃園</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hotel Card -->
+                <div class="bg-white dark:bg-jp-card-dark rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
+                    <h3 class="text-sm font-bold text-gray-400 uppercase mb-4 flex items-center gap-2"><i class="fas fa-hotel"></i> 住宿憑證</h3>
+                    <div class="mb-4">
+                        <h4 class="text-xl font-bold text-jp-navy dark:text-white">KOKO飯店 札幌站前</h4>
+                        <p class="text-sm text-gray-500 mt-1">北海道札幌市中央區北 1 条西 3 丁目 3-10</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 mb-4">
+                        <div>
+                            <div class="text-xs text-gray-400">入住 (15:00)</div>
+                            <div class="font-bold">2026/01/16</div>
+                        </div>
+                        <div>
+                            <div class="text-xs text-gray-400">退房 (11:00)</div>
+                            <div class="font-bold">2026/01/20</div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                            <span class="text-gray-500">訂單編號</span>
+                            <span class="font-mono font-bold select-all">1616327329115629</span>
+                        </div>
+                        <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                            <span class="text-gray-500">入住人</span>
+                            <span class="font-bold">CHANG SHENGKAI</span>
+                        </div>
+                    </div>
+                    <button @click="openMap('KOKO Hotel Sapporo Ekimae')" class="w-full mt-4 bg-jp-navy text-white py-3 rounded-xl text-sm font-bold hover:bg-opacity-90 transition">
+                        開啟導航
+                    </button>
+                </div>
+
+                <!-- Budget / Notes -->
+                <div class="bg-white dark:bg-jp-card-dark rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-800">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-sm font-bold text-gray-400 uppercase flex items-center gap-2"><i class="fas fa-yen-sign"></i> 預算/記帳</h3>
+                        <button @click="addExpense" class="text-xs bg-jp-navy text-white px-3 py-1 rounded-full"><i class="fas fa-plus"></i> 新增</button>
+                    </div>
+                    <ul class="space-y-3">
+                        <li v-for="(item, idx) in expenses" :key="idx" class="flex justify-between text-sm items-center">
+                            <span class="text-gray-600 dark:text-gray-300">{{ item.name }}</span>
+                            <span class="font-mono font-bold text-jp-navy dark:text-white">¥{{ item.amount }}</span>
+                        </li>
+                    </ul>
+                    <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex justify-between font-bold">
+                        <span>總計</span>
+                        <span>¥{{ totalExpense }}</span>
+                    </div>
+                </div>
+
+                <!-- Emergency -->
+                 <div class="bg-red-50 dark:bg-red-900/20 rounded-2xl p-5 shadow-sm border border-red-100 dark:border-red-900/50">
+                    <h3 class="text-sm font-bold text-red-500 uppercase mb-4 flex items-center gap-2"><i class="fas fa-exclamation-circle"></i> 緊急聯絡</h3>
+                    <div class="space-y-3">
+                        <a href="tel:110" class="flex items-center gap-3 p-3 bg-white dark:bg-jp-card-dark rounded-xl">
+                            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-500"><i class="fas fa-shield-alt"></i></div>
+                            <div class="flex-1">
+                                <div class="text-xs text-gray-500">日本警察局</div>
+                                <div class="font-bold">110</div>
+                            </div>
+                        </a>
+                         <a href="tel:119" class="flex items-center gap-3 p-3 bg-white dark:bg-jp-card-dark rounded-xl">
+                            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-500"><i class="fas fa-ambulance"></i></div>
+                            <div class="flex-1">
+                                <div class="text-xs text-gray-500">救護車/火警</div>
+                                <div class="font-bold">119</div>
+                            </div>
+                        </a>
+                        <a href="tel:+886223266758" class="flex items-center gap-3 p-3 bg-white dark:bg-jp-card-dark rounded-xl">
+                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-500"><i class="fas fa-user-md"></i></div>
+                            <div class="flex-1">
+                                <div class="text-xs text-gray-500">安達海外急難救助 (推測)</div>
+                                <div class="font-bold">+886 2 2326 6758</div>
+                            </div>
+                        </a>
+                    </div>
+                 </div>
+            </div>
+
+            <!-- Tab 3: eSIM (eSIM Info) -->
+            <div v-show="currentTab === 'esim'" class="space-y-6 pt-4">
+                <div class="bg-white dark:bg-jp-card-dark rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800">
+                    <div class="bg-jp-navy p-6 text-center">
+                        <h3 class="text-white font-bold text-lg mb-2">WaySim 日本 eSIM</h3>
+                        <div class="bg-white p-2 rounded-lg inline-block shadow-lg">
+                            <!-- Placeholder for QR Code Image -->
+                            <div class="w-48 h-48 bg-gray-200 flex items-center justify-center text-gray-400 text-xs text-center p-2">
+                                <i class="fas fa-qrcode text-4xl mb-2"></i><br>請在此處顯示<br>您的 QR Code 截圖
+                            </div>
+                        </div>
+                        <p class="text-blue-200 text-xs mt-4">請使用另一支手機拍照或長按存圖</p>
+                    </div>
+                    <div class="p-5">
+                        <div class="mb-6">
+                            <h4 class="font-bold text-lg mb-3">安裝資訊</h4>
+                            <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 space-y-2 text-sm">
+                                <div class="flex justify-between"><span class="text-gray-500">電信商</span> <span>Softbank</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">卡號 (ICCID)</span> <span class="font-mono text-xs">89812003919122484447</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">啟用碼</span> <span class="font-mono text-xs truncate w-32">CCCD0A...</span></div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <h4 class="font-bold text-lg">啟用步驟 (iOS)</h4>
+                            <div class="flex gap-3">
+                                <div class="flex-shrink-0 w-6 h-6 rounded-full bg-jp-navy text-white flex items-center justify-center text-xs font-bold">1</div>
+                                <p class="text-sm text-gray-600 dark:text-gray-300">抵達日本機場，連上機場免費 WiFi。</p>
+                            </div>
+                            <div class="flex gap-3">
+                                <div class="flex-shrink-0 w-6 h-6 rounded-full bg-jp-navy text-white flex items-center justify-center text-xs font-bold">2</div>
+                                <p class="text-sm text-gray-600 dark:text-gray-300">設定 > 行動服務 > 加入 eSIM > 掃描上方 QR Code。</p>
+                            </div>
+                            <div class="flex gap-3">
+                                <div class="flex-shrink-0 w-6 h-6 rounded-full bg-jp-navy text-white flex items-center justify-center text-xs font-bold">3</div>
+                                <p class="text-sm text-gray-600 dark:text-gray-300">標籤設為「旅遊」，開啟「數據漫遊」。</p>
+                            </div>
+                             <div class="flex gap-3">
+                                <div class="flex-shrink-0 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs font-bold">!</div>
+                                <p class="text-sm text-red-500 font-bold">請勿在台灣先掃描開啟，避免計算天數。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 4: 保險 (Insurance) -->
+            <div v-show="currentTab === 'insurance'" class="space-y-6 pt-4">
+                <div class="bg-white dark:bg-jp-card-dark rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="font-bold text-xl">安達產物保險</h3>
+                        <span class="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-bold">有效</span>
+                    </div>
+                    
+                    <div class="space-y-4 mb-6">
+                        <div>
+                            <div class="text-xs text-gray-500 mb-1">保單號碼</div>
+                            <div class="text-lg font-mono font-bold">EWRTWAA0686101</div>
+                        </div>
+                         <div>
+                            <div class="text-xs text-gray-500 mb-1">被保險人</div>
+                            <div class="text-lg font-bold">張勝凱 / CHANG SHENGKAI</div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                             <div>
+                                <div class="text-xs text-gray-500 mb-1">生效日</div>
+                                <div class="font-medium">2026/01/16 03:00</div>
+                            </div>
+                             <div>
+                                <div class="text-xs text-gray-500 mb-1">到期日</div>
+                                <div class="font-medium">2026/01/21 03:00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t border-gray-100 dark:border-gray-700 pt-4">
+                        <h4 class="font-bold mb-3 text-sm">保障內容摘要</h4>
+                        <ul class="text-sm space-y-2 text-gray-600 dark:text-gray-300">
+                            <li class="flex justify-between"><span>意外身故/失能</span> <span>NT$500萬</span></li>
+                            <li class="flex justify-between"><span>傷害醫療</span> <span>NT$30萬</span></li>
+                            <li class="flex justify-between"><span>海外突發疾病</span> <span>NT$30萬</span></li>
+                            <li class="flex justify-between"><span>班機延誤</span> <span>NT$5,000</span></li>
+                            <li class="flex justify-between"><span>行李損失</span> <span>NT$3,000</span></li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-6">
+                        <button class="w-full border border-jp-navy text-jp-navy dark:border-white dark:text-white py-3 rounded-xl text-sm font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                            查看完整保單條款
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Space for safe area -->
+            <div class="h-8"></div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bg-white/90 dark:bg-jp-dark/90 glass-effect border-t border-gray-200 dark:border-gray-800 safe-bottom fixed bottom-0 w-full z-50">
+            <div class="flex justify-around items-center h-16">
+                <button @click="currentTab = 'itinerary'" :class="currentTab === 'itinerary' ? 'text-jp-navy dark:text-white' : 'text-gray-400'" class="flex flex-col items-center gap-1 w-1/4 transition-colors">
+                    <i class="fas fa-map-marked-alt text-lg"></i>
+                    <span class="text-[10px] font-medium">行程</span>
+                </button>
+                 <button @click="currentTab = 'tools'" :class="currentTab === 'tools' ? 'text-jp-navy dark:text-white' : 'text-gray-400'" class="flex flex-col items-center gap-1 w-1/4 transition-colors">
+                    <i class="fas fa-suitcase text-lg"></i>
+                    <span class="text-[10px] font-medium">工具</span>
+                </button>
+                 <button @click="currentTab = 'esim'" :class="currentTab === 'esim' ? 'text-jp-navy dark:text-white' : 'text-gray-400'" class="flex flex-col items-center gap-1 w-1/4 transition-colors">
+                    <i class="fas fa-sim-card text-lg"></i>
+                    <span class="text-[10px] font-medium">eSIM</span>
+                </button>
+                 <button @click="currentTab = 'insurance'" :class="currentTab === 'insurance' ? 'text-jp-navy dark:text-white' : 'text-gray-400'" class="flex flex-col items-center gap-1 w-1/4 transition-colors">
+                    <i class="fas fa-file-shield text-lg"></i>
+                    <span class="text-[10px] font-medium">保險</span>
+                </button>
+            </div>
+        </nav>
+
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted, watch } = Vue;
+
+        createApp({
+            setup() {
+                const currentTab = ref('itinerary');
+                const activeDayIndex = ref(0);
+                const isDark = ref(false);
+
+                // Initial Data
+                const daysData = [
+                    {
+                        date: '2026-01-16',
+                        shortDate: '1/16 (五)',
+                        location: '札幌',
+                        events: [
+                            { time: '05:50', type: 'transport', title: '桃園起飛', desc: '前往北海道新千歲機場 (CTS)。', location: 'Taoyuan International Airport', isEditing: false },
+                            { time: '11:30', type: 'transport', title: '抵達新千歲', desc: '出關後直接前往國內線航廈覓食。', location: 'New Chitose Airport', isEditing: false },
+                            { time: '12:30', type: 'food', title: '拉麵道場 / 冰淇淋', desc: '推薦：「一幻拉麵」濃郁蝦湯。\n必吃：Kinotoya 極上牛乳冰淇淋。', tag: '必吃', location: 'Hokkaido Ramen Dojo', highlights: ['一幻鮮蝦拉麵', 'Kinotoya冰淇淋'], isEditing: false },
+                            { time: '14:30', type: 'transport', title: '前往札幌', desc: '搭乘 JR 快速機場線 (Rapid Airport) \n車程約 40 分鐘。', location: 'Sapporo Station', isEditing: false },
+                            { time: '16:00', type: 'hotel', title: 'KOKO Hotel 登記入住', desc: '先寄放行李。\n訂單號：1616327329115629', location: 'KOKO HOTEL Sapporo Ekimae', tag: 'Check-in', isEditing: false },
+                            { time: '18:00', type: 'sight', title: '大通公園 / 電視塔', desc: '欣賞札幌初雪與夜景。\n電視塔適合拍全景。', location: 'Odori Park', isEditing: false },
+                            { time: '19:30', type: 'food', title: '晚餐：螃蟹本家', desc: '或去吃成吉思汗烤羊肉 (Daruma)。\n天氣冷記得穿暖。', tag: '預約確認', location: 'Sapporo Kani Honke', isEditing: false }
+                        ]
+                    },
+                    {
+                        date: '2026-01-17',
+                        shortDate: '1/17 (六)',
+                        location: '小樽',
+                        events: [
+                            { time: '09:00', type: 'transport', title: 'JR 前往小樽', desc: '札幌站搭乘 JR 函館本線，約 35 分鐘。\n建議坐右側看海景。', location: 'Otaru Station', isEditing: false },
+                            { time: '10:30', type: 'sight', title: '小樽運河散策', desc: '經典拍照點。\n順路逛北一硝子館、音樂盒堂。', location: 'Otaru Canal', isEditing: false },
+                            { time: '12:30', type: 'food', title: '三角市場海鮮丼', desc: '必點：滝波食堂 (Takinami) 任選三色丼。', tag: '排隊名店', location: 'Sankaku Market', highlights: ['滝波食堂', '帝王蟹'], isEditing: false },
+                            { time: '14:30', type: 'food', title: '甜點巡禮', desc: '六花亭 (泡芙)、LeTAO 本店 (雙層起司蛋糕)。\n北菓樓 (夢不思議泡芙)。', tag: '必買伴手禮', location: 'LeTAO Main Store', highlights: ['LeTAO', '六花亭', '北菓樓'], isEditing: false },
+                            { time: '17:30', type: 'transport', title: '返回札幌', desc: '晚上回到市區覓食。', location: 'Sapporo Station', isEditing: false },
+                            { time: '19:00', type: 'food', title: '札幌味噌拉麵', desc: '信玄拉麵 (濃郁) 或 Sumire。', location: 'Ramen Shingen Minami 6jo', isEditing: false },
+                            { time: '20:30', type: 'shop', title: '狸小路逛街', desc: '唐吉軻德補貨藥妝。', location: 'Tanukikoji Shopping Street', isEditing: false }
+                        ]
+                    },
+                    {
+                        date: '2026-01-18',
+                        shortDate: '1/18 (日)',
+                        location: '美瑛/富良野',
+                        events: [
+                            { time: '08:00', type: 'sight', title: 'KKday/Klook 一日遊', desc: '集合地點：通常在札幌站北口。\n前往美瑛聖誕樹、白鬚瀑布、精靈露臺。', tag: '跟團', location: 'Sapporo Station North Exit', highlights: ['白鬚瀑布', '精靈露臺'], isEditing: false },
+                            { time: '12:00', type: 'food', title: '午餐 (行程內含/自理)', desc: '富良野咖哩或美瑛牛奶鍋。', location: 'Biei', isEditing: false },
+                            { time: '18:00', type: 'transport', title: '返回札幌', desc: '一日遊結束解散。', location: 'Sapporo Station', isEditing: false }
+                        ]
+                    },
+                    {
+                        date: '2026-01-19',
+                        shortDate: '1/19 (一)',
+                        location: '登別/定山溪',
+                        events: [
+                            { time: '09:00', type: 'transport', title: '前往溫泉區', desc: '方案A：登別 (地獄谷) - 搭巴士或JR。\n方案B：定山溪 - 札幌站搭河童號巴士。', location: 'Noboribetsu Onsen', isEditing: false },
+                            { time: '10:30', type: 'sight', title: '地獄谷 / 雪景', desc: '在雪中泡溫泉 (日歸溫泉)。', location: 'Jigokudani (Hell Valley)', isEditing: false },
+                            { time: '16:00', type: 'transport', title: '返回札幌', desc: '最後採買機會。', location: 'Sapporo', isEditing: false },
+                            { time: '19:00', type: 'shop', title: '最後補貨', desc: '白色戀人、薯條三兄弟、Royce 生巧克力。', tag: '必買', location: 'Sapporo Est', isEditing: false }
+                        ]
+                    },
+                     {
+                        date: '2026-01-20',
+                        shortDate: '1/20 (二)',
+                        location: '新千歲',
+                        events: [
+                            { time: '07:30', type: 'transport', title: '前往機場', desc: '搭乘 JR 機場快線。', location: 'New Chitose Airport', isEditing: false },
+                            { time: '08:30', type: 'shop', title: '機場最後衝刺', desc: '新千歲國內線商店街非常好逛。\n購買需冷藏的海鮮或甜點。', location: 'New Chitose Airport Domestic Terminal', isEditing: false },
+                            { time: '11:30', type: 'transport', title: '飛機起飛', desc: '返回溫暖的家。', location: 'New Chitose Airport International Terminal', isEditing: false }
+                        ]
+                    }
+                ];
+
+                const expenses = ref([
+                    { name: '機票預付', amount: 18000 },
+                    { name: 'KOKO Hotel', amount: 13474 }
+                ]);
+
+                // State Management
+                const days = ref(daysData);
+
+                // Load from LocalStorage
+                onMounted(() => {
+                    const savedDays = localStorage.getItem('hokkaido_trip_days');
+                    if (savedDays) {
+                        days.value = JSON.parse(savedDays);
+                    }
+                    
+                    const savedExpenses = localStorage.getItem('hokkaido_trip_expenses');
+                    if (savedExpenses) {
+                        expenses.value = JSON.parse(savedExpenses);
+                    }
+
+                    // Check system dark mode preference
+                    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                        isDark.value = true;
+                        document.documentElement.classList.add('dark');
+                    }
+                });
+
+                // Auto Save
+                watch(days, (newVal) => {
+                    localStorage.setItem('hokkaido_trip_days', JSON.stringify(newVal));
+                }, { deep: true });
+
+                watch(expenses, (newVal) => {
+                    localStorage.setItem('hokkaido_trip_expenses', JSON.stringify(newVal));
+                }, { deep: true });
+
+                // Computed
+                const activeDayDate = computed(() => days.value[activeDayIndex.value].date);
+                const currentDayTitle = computed(() => `Day ${activeDayIndex.value + 1} | ${days.value[activeDayIndex.value].location}`);
+                const totalExpense = computed(() => expenses.value.reduce((sum, item) => sum + item.amount, 0));
+
+                // Methods
+                const toggleDarkMode = () => {
+                    isDark.value = !isDark.value;
+                    if (isDark.value) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                };
+
+                const getCategoryColor = (type) => {
+                    const colors = {
+                        transport: 'bg-blue-500',
+                        food: 'bg-orange-400',
+                        sight: 'bg-emerald-500',
+                        hotel: 'bg-indigo-500',
+                        shop: 'bg-pink-500'
+                    };
+                    return colors[type] || 'bg-gray-400';
+                };
+
+                const getCategoryIcon = (type) => {
+                    const icons = {
+                        transport: 'fa-bus',
+                        food: 'fa-utensils',
+                        sight: 'fa-camera',
+                        hotel: 'fa-bed',
+                        shop: 'fa-shopping-bag'
+                    };
+                    return `fas ${icons[type] || 'fa-circle'}`;
+                };
+
+                const toggleEdit = (dayIndex, eventIndex) => {
+                    days.value[dayIndex].events[eventIndex].isEditing = !days.value[dayIndex].events[eventIndex].isEditing;
+                };
+
+                const openMap = (location) => {
+                    const query = encodeURIComponent(location);
+                    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+                };
+
+                const openLink = (link) => {
+                    if(link) window.open(link, '_blank');
+                };
+
+                const addExpense = () => {
+                    const name = prompt('請輸入項目名稱：');
+                    const amount = prompt('請輸入金額 (TWD/JPY)：');
+                    if (name && amount) {
+                        expenses.value.push({ name, amount: parseInt(amount) });
+                    }
+                };
+
+                return {
+                    currentTab,
+                    activeDayIndex,
+                    isDark,
+                    days,
+                    expenses,
+                    activeDayDate,
+                    currentDayTitle,
+                    totalExpense,
+                    toggleDarkMode,
+                    getCategoryColor,
+                    getCategoryIcon,
+                    toggleEdit,
+                    openMap,
+                    openLink,
+                    addExpense
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
