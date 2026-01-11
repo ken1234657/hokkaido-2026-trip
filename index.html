@@ -27,10 +27,6 @@
                         'neon-pink': '#f472b6',
                         'neon-purple': '#a78bfa',
                         'coffee': '#d4a373'
-                    },
-                    spacing: {
-                        'safe-top': 'env(safe-area-inset-top)',
-                        'safe-bottom': 'env(safe-area-inset-bottom)',
                     }
                 }
             }
@@ -39,32 +35,36 @@
     <style>
         body { 
             -webkit-tap-highlight-color: transparent; 
-            -webkit-overflow-scrolling: touch;
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
         
-        /* Glass Nav (Bottom Only) */
+        /* Dynamic Glassmorphism System */
+        /* Light Mode Default */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
         .glass-nav {
             background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(0,0,0,0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        /* Dark Mode Overrides */
+        .dark .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: none;
         }
         .dark .glass-nav {
             background: rgba(15, 23, 42, 0.9);
-            border-top: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(0,0,0,0.05);
-        }
-        .dark .glass-card {
-            background: rgba(30, 41, 59, 0.6);
-            border: 1px solid rgba(255,255,255,0.05);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
         
         .custom-checkbox:checked {
@@ -73,104 +73,133 @@
         }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-[#0f172a] text-slate-800 dark:text-slate-200 font-sans min-h-screen transition-colors duration-300 selection:bg-neon-cyan selection:text-slate-900">
+<body class="bg-gray-100 dark:bg-[#0f172a] text-slate-800 dark:text-slate-200 font-sans h-screen overflow-hidden flex flex-col transition-colors duration-300">
 
-    <div id="app" class="relative flex flex-col min-h-screen">
+    <div id="app" class="flex flex-col h-full relative">
         
-        <!-- Scrollable Header (Not Fixed) -->
-        <!-- pt-safe-top ensures it starts below the notch -->
-        <header class="w-full pt-safe-top px-6 pb-2 transition-colors duration-300 flex justify-between items-end min-h-[80px]">
+        <!-- Header -->
+        <header class="pt-12 pb-2 px-6 flex justify-between items-center z-20 glass-nav sticky top-0 transition-colors duration-300">
             <div>
                 <h1 class="text-[10px] font-bold tracking-[0.2em] text-blue-600 dark:text-neon-cyan uppercase mb-1">HOKKAIDO 2026</h1>
-                <div class="text-3xl font-bold text-gray-900 dark:text-white leading-tight">
-                    <span v-if="currentTab === 'prep'">行前準備</span>
+                <div class="text-xl font-bold flex items-center gap-2">
+                    <span v-if="currentTab === 'prep'">行前準備 & Check</span>
                     <span v-else-if="currentTab === 'itinerary'">{{ currentDayTitle }}</span>
-                    <span v-else-if="currentTab === 'souvenir'">必買清單</span>
-                    <span v-else-if="currentTab === 'tools'">旅行工具</span>
-                    <span v-else-if="currentTab === 'wallet'">憑證夾</span>
-                    <span class="text-blue-500 dark:text-neon-cyan">.</span>
+                    <span v-else-if="currentTab === 'souvenir'">必買伴手禮清單</span>
+                    <span v-else-if="currentTab === 'tools'">旅行工具箱</span>
+                    <span v-else-if="currentTab === 'wallet'">電子憑證夾</span>
                 </div>
             </div>
             <!-- Mode Toggle -->
-            <button @click="toggleDarkMode" class="w-9 h-9 rounded-full bg-gray-200 dark:bg-slate-800 flex items-center justify-center text-sm transition-transform active:scale-95 mb-1">
+            <button @click="toggleDarkMode" class="w-8 h-8 rounded-full bg-gray-200 dark:bg-slate-800 flex items-center justify-center text-xs transition-colors hover:bg-gray-300 dark:hover:bg-slate-700">
                 <i :class="isDark ? 'fas fa-sun text-yellow-400' : 'fas fa-moon text-slate-400'"></i>
             </button>
         </header>
 
         <!-- Main Content -->
-        <!-- No top padding needed, flows naturally -->
-        <main class="flex-1 px-4 pb-28 w-full">
+        <main id="main-scroll" class="flex-1 overflow-y-auto hide-scrollbar pb-28 px-4 scroll-smooth">
             
             <!-- Tab 0: 行前準備 -->
-            <div v-if="currentTab === 'prep'" class="space-y-6 animate-fade-in mt-4">
-                <div class="glass-card rounded-2xl p-6 relative overflow-hidden">
+            <div v-show="currentTab === 'prep'" class="space-y-6 pt-4 animate-fade-in">
+                <!-- Critical Items -->
+                <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
+                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-blue-400/10 dark:bg-neon-cyan/20 rounded-full blur-3xl transition-all"></div>
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-bold flex items-center gap-2"><i class="fas fa-passport text-blue-500 dark:text-neon-cyan"></i> 關鍵手續</h3>
-                        <button @click="addItem('critical')" class="text-xs bg-blue-100 text-blue-600 dark:bg-neon-cyan dark:text-slate-900 px-2 py-1 rounded font-bold"><i class="fas fa-plus"></i></button>
+                        <button @click="addItem('critical')" class="text-xs bg-blue-100 text-blue-600 dark:bg-neon-cyan dark:text-slate-900 px-2 py-1 rounded font-bold hover:opacity-80"><i class="fas fa-plus"></i></button>
                     </div>
                     <div class="space-y-3">
                         <div v-for="(item, idx) in prepData.critical" :key="idx" class="flex items-center gap-2 group/item">
-                             <label class="flex-1 flex items-center gap-3 p-3 rounded-xl bg-gray-50/50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50">
-                                <input type="checkbox" v-model="item.checked" class="w-5 h-5 rounded border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-blue-500 dark:text-neon-cyan custom-checkbox">
-                                <input v-if="item.isEditing" v-model="item.name" class="bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-sm w-full" @blur="item.isEditing = false">
+                             <label class="flex-1 flex items-center gap-3 p-3 rounded-xl bg-gray-50/50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-800 transition">
+                                <input type="checkbox" v-model="item.checked" class="w-5 h-5 rounded border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-blue-500 dark:text-neon-cyan focus:ring-blue-500 dark:focus:ring-neon-cyan custom-checkbox">
+                                <input v-if="item.isEditing" v-model="item.name" class="bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-sm w-full" @blur="item.isEditing = false" @keyup.enter="item.isEditing = false">
                                 <span v-else :class="{'line-through text-gray-400 dark:text-gray-500': item.checked}">{{ item.name }}</span>
                             </label>
-                            <button @click="deleteItem('critical', idx)" class="w-8 h-8 rounded bg-red-100 dark:bg-red-900/50 text-red-500 flex items-center justify-center"><i class="fas fa-trash"></i></button>
+                            <div class="flex flex-col gap-1 opacity-100 sm:opacity-0 sm:group-hover/item:opacity-100 transition-opacity">
+                                <button @click="item.isEditing = !item.isEditing" class="w-6 h-6 rounded bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-slate-300 flex items-center justify-center text-[10px]"><i class="fas fa-pen"></i></button>
+                                <button @click="deleteItem('critical', idx)" class="w-6 h-6 rounded bg-red-100 dark:bg-red-900/50 text-red-500 dark:text-red-400 flex items-center justify-center text-[10px]"><i class="fas fa-trash"></i></button>
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Packing List -->
                 <div class="glass-card rounded-2xl p-6">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-bold flex items-center gap-2"><i class="fas fa-suitcase text-blue-500 dark:text-neon-cyan"></i> 行李清單</h3>
-                        <button @click="addItem('packing')" class="text-xs bg-blue-100 text-blue-600 dark:bg-neon-cyan dark:text-slate-900 px-2 py-1 rounded font-bold"><i class="fas fa-plus"></i></button>
+                        <h3 class="text-lg font-bold flex items-center gap-2"><i class="fas fa-snowflake text-blue-500 dark:text-neon-cyan"></i> 雪國裝備 & 行李</h3>
+                        <button @click="addItem('packing')" class="text-xs bg-blue-100 text-blue-600 dark:bg-neon-cyan dark:text-slate-900 px-2 py-1 rounded font-bold hover:opacity-80"><i class="fas fa-plus"></i></button>
                     </div>
                     <div class="grid grid-cols-1 gap-2">
-                        <div v-for="(item, idx) in prepData.packing" :key="idx" class="flex items-center justify-between p-3 rounded-xl transition-all" :class="item.checked ? 'opacity-50' : ''">
+                        <div v-for="(item, idx) in prepData.packing" :key="idx" 
+                             class="flex items-center justify-between p-3 rounded-xl transition-all group/item"
+                             :class="item.checked ? 'bg-gray-100/50 dark:bg-slate-800/30 opacity-50' : 'bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700'">
                             <span class="flex items-center gap-3 flex-1" @click="!item.isEditing && (item.checked = !item.checked)">
-                                <i :class="['fas', item.icon || 'fa-check']" class="text-gray-400 dark:text-slate-400 w-5 text-center"></i>
-                                <input v-if="item.isEditing" v-model="item.name" class="bg-white dark:bg-slate-900 border rounded px-2 py-1 w-full" @blur="item.isEditing = false">
+                                <i :class="['fas', item.icon || 'fa-suitcase']" class="text-gray-400 dark:text-slate-400 w-5 text-center"></i>
+                                <input v-if="item.isEditing" v-model="item.name" class="bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-sm w-full dark:text-white" @click.stop @blur="item.isEditing = false" @keyup.enter="item.isEditing = false">
                                 <span v-else :class="{'line-through': item.checked}">{{ item.name }}</span>
                             </span>
-                            <div class="flex gap-2">
+                            
+                            <div class="flex items-center gap-2">
                                 <i v-if="item.checked && !item.isEditing" class="fas fa-check-circle text-blue-500 dark:text-neon-cyan"></i>
-                                <button @click="deleteItem('packing', idx)" class="text-red-400 text-xs px-2"><i class="fas fa-times"></i></button>
+                                <i v-if="!item.checked && !item.isEditing" class="far fa-circle text-gray-400 dark:text-slate-600"></i>
+                                
+                                <div class="flex gap-1 ml-2">
+                                    <button @click.stop="item.isEditing = !item.isEditing" class="w-6 h-6 rounded bg-gray-200 dark:bg-slate-600 text-gray-500 dark:text-slate-300 flex items-center justify-center text-[10px]"><i class="fas fa-pen"></i></button>
+                                    <button @click.stop="deleteItem('packing', idx)" class="w-6 h-6 rounded bg-red-100 dark:bg-red-900/50 text-red-500 dark:text-red-400 flex items-center justify-center text-[10px]"><i class="fas fa-trash"></i></button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Tab 1: 行程 -->
-            <div v-if="currentTab === 'itinerary'" class="space-y-6 animate-fade-in mt-4">
+            <!-- Tab 1: 行程 (Itinerary) -->
+            <div v-show="currentTab === 'itinerary'" class="space-y-6 pt-4">
                 
-                <!-- Weather -->
-                <div class="rounded-3xl p-5 text-white shadow-lg relative overflow-hidden min-h-[140px]"
-                     :class="activeDayIndex === 2 ? 'bg-gradient-to-br from-slate-600 to-slate-800' : 'bg-gradient-to-br from-blue-500 to-blue-900'">
-                    <div class="flex justify-between items-start z-10 relative">
-                        <div>
+                <!-- Weather Widget -->
+                <div class="rounded-3xl p-5 text-white shadow-xl relative overflow-hidden min-h-[140px] border border-white/10"
+                     :class="activeDayIndex === 2 ? 'bg-gradient-to-br from-gray-600 to-gray-800' : 'bg-gradient-to-br from-blue-500 to-blue-900'">
+                    
+                    <div class="flex justify-between items-start z-10 relative h-full">
+                        <div class="flex-1">
                             <div class="flex items-center gap-2 opacity-80 mb-2">
                                 <i class="fas fa-map-marker-alt text-pink-300 dark:text-neon-pink"></i>
-                                <span class="text-sm font-bold">{{ days[activeDayIndex].location }}</span>
+                                <span class="text-sm font-bold tracking-wide">{{ days[activeDayIndex].location }}</span>
                                 <span class="text-[10px] opacity-60">| {{ activeDayDate }}</span>
                             </div>
+
                             <div v-if="weatherData[activeDayIndex]" class="mt-1">
                                 <div class="flex items-end gap-3">
-                                    <div class="text-6xl font-bold tracking-tighter leading-none">{{ weatherData[activeDayIndex].currentTemp }}°</div>
-                                    <div class="font-mono text-cyan-200 dark:text-neon-cyan text-lg font-bold mb-1">{{ currentTime }}</div>
+                                    <div class="text-6xl font-bold tracking-tighter leading-none">
+                                        {{ weatherData[activeDayIndex].currentTemp }}°
+                                    </div>
+                                    <div class="font-mono text-cyan-200 dark:text-neon-cyan text-lg font-bold mb-1 tracking-widest">
+                                        {{ currentTime }}
+                                    </div>
                                 </div>
                                 <div class="text-sm mt-3 flex items-center gap-3 font-medium opacity-90">
-                                    <div class="flex items-center gap-1"><i :class="weatherData[activeDayIndex].icon" class="text-yellow-300"></i>{{ weatherData[activeDayIndex].desc }}</div>
+                                    <div class="flex items-center gap-1">
+                                        <i :class="weatherData[activeDayIndex].icon" class="text-yellow-300"></i>
+                                        {{ weatherData[activeDayIndex].desc }}
+                                    </div>
                                     <div class="h-4 w-[1px] bg-white/30"></div>
-                                    <span class="text-xs">H:{{ weatherData[activeDayIndex].maxTemp }}° L:{{ weatherData[activeDayIndex].minTemp }}°</span>
+                                    <div class="flex items-center gap-2 text-xs">
+                                        <span class="text-red-200"><i class="fas fa-arrow-up"></i> {{ weatherData[activeDayIndex].maxTemp }}°</span>
+                                        <span class="text-blue-200"><i class="fas fa-arrow-down"></i> {{ weatherData[activeDayIndex].minTemp }}°</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div v-else class="mt-2 animate-pulse"><div class="h-12 w-32 bg-white/20 rounded"></div></div>
+                            <div v-else class="mt-2 animate-pulse">
+                                <div class="h-12 w-32 bg-white/20 rounded mb-2"></div>
+                                <div class="h-4 w-20 bg-white/20 rounded"></div>
+                            </div>
                         </div>
-                        <button @click="openTenki(days[activeDayIndex].tenkiUrl)" class="bg-white/10 backdrop-blur-md border border-white/20 px-3 py-2 rounded-xl flex flex-col items-center gap-1">
-                            <span class="text-[10px] font-bold">TENKI</span><i class="fas fa-external-link-alt text-[10px]"></i>
+                        
+                        <button @click="openTenki(days[activeDayIndex].tenkiUrl)" class="bg-white/10 backdrop-blur-md border border-white/20 px-3 py-2 rounded-xl flex flex-col items-center gap-1 transition-transform active:scale-95 hover:bg-white/20">
+                            <span class="text-[10px] font-bold tracking-wide">TENKI.jp</span>
+                            <i class="fas fa-external-link-alt text-[10px]"></i>
                         </button>
                     </div>
+                    <i class="fas fa-snowflake text-[10rem] opacity-5 absolute -right-8 -bottom-10 rotate-12"></i>
                 </div>
 
                 <!-- Date Scroller -->
@@ -203,7 +232,9 @@
                                             <span class="font-mono text-blue-600 dark:text-neon-cyan font-bold text-sm">{{ event.time }}</span>
                                             <span v-if="event.tag" class="text-[10px] font-bold text-slate-900 bg-pink-200 dark:bg-neon-pink px-2 py-0.5 rounded-full">{{ event.tag }}</span>
                                         </div>
-                                        <button @click="toggleEdit(activeDayIndex, eIndex)" class="text-gray-400 dark:text-slate-500"><i :class="event.isEditing ? 'fas fa-check text-green-500' : 'fas fa-pen'"></i></button>
+                                        <button @click="toggleEdit(activeDayIndex, eIndex)" class="text-gray-400 dark:text-slate-500 hover:text-blue-500 dark:hover:text-white">
+                                            <i :class="event.isEditing ? 'fas fa-check text-green-500 dark:text-green-400' : 'fas fa-pen'"></i>
+                                        </button>
                                     </div>
                                     
                                     <div v-if="!event.isEditing">
@@ -217,8 +248,8 @@
                                     </div>
 
                                     <div v-else class="space-y-2 mb-3">
-                                        <input v-model="event.title" class="w-full bg-gray-100 dark:bg-slate-900 rounded p-2 text-sm border dark:border-slate-700 text-gray-800 dark:text-white">
-                                        <textarea v-model="event.desc" rows="3" class="w-full bg-gray-100 dark:bg-slate-900 rounded p-2 text-sm border dark:border-slate-700 text-gray-800 dark:text-white"></textarea>
+                                        <input v-model="event.title" class="w-full bg-gray-100 dark:bg-slate-900 rounded p-2 text-sm border border-gray-300 dark:border-slate-700 text-gray-800 dark:text-white">
+                                        <textarea v-model="event.desc" rows="3" class="w-full bg-gray-100 dark:bg-slate-900 rounded p-2 text-sm border border-gray-300 dark:border-slate-700 text-gray-800 dark:text-white"></textarea>
                                     </div>
 
                                     <!-- Highlights -->
@@ -227,15 +258,16 @@
                                     </div>
 
                                     <!-- Plan B & Power Spot -->
-                                    <div v-if="!event.isEditing && (event.backups || event.powerSpot)" class="mt-3 pt-2 border-t border-gray-100 dark:border-slate-700/50 space-y-2">
-                                        <div v-if="event.backups">
+                                    <div v-if="!event.isEditing && (event.backups || event.powerSpot)" class="mt-3 pt-2 border-t border-gray-100 dark:border-slate-700/50">
+                                        <div v-if="event.backups" class="mb-2">
                                             <div class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase mb-1">Plan B (備案)</div>
                                             <div v-for="bk in event.backups" class="text-xs text-gray-600 dark:text-slate-300 flex items-center gap-2">
-                                                <i class="fas fa-angle-right"></i> {{ bk.name }} <span class="text-[#fa8304] font-bold">{{ bk.rating }}</span>
+                                                <i class="fas fa-angle-right text-gray-400 dark:text-slate-600"></i> {{ bk.name }}
+                                                <span v-if="bk.rating" class="text-[#fa8304] font-bold">{{ bk.rating }}</span>
                                             </div>
                                         </div>
                                         <div v-if="event.powerSpot" class="flex items-center gap-2 text-xs text-coffee bg-orange-50 dark:bg-coffee/10 p-2 rounded-lg border border-orange-100 dark:border-coffee/20">
-                                            <i class="fas fa-mug-hot text-lg text-coffee"></i>
+                                            <i class="fas fa-mug-hot text-lg"></i>
                                             <div>
                                                 <div class="font-bold text-coffee dark:text-coffee">{{ event.powerSpot.name }}</div>
                                                 <div class="text-[10px] text-gray-500 dark:text-slate-400">{{ event.powerSpot.desc }}</div>
@@ -246,18 +278,23 @@
                             </div>
                             
                             <!-- XT-50 Dashboard -->
-                            <div v-if="event.photo" class="mt-3 bg-gray-50 dark:bg-slate-900/80 rounded-xl p-3 border border-gray-200 dark:border-slate-700/50 text-xs">
-                                <div class="flex justify-between mb-1 text-purple-600 dark:text-neon-purple font-bold">
-                                    <span><i class="fas fa-camera mr-1"></i>X-T50</span>
-                                    <span class="bg-gray-200 dark:bg-slate-800 px-1 rounded text-gray-600 dark:text-gray-300">{{ event.photo.sim }}</span>
+                            <div v-if="event.photo" class="mt-3 bg-gray-50 dark:bg-slate-900/80 rounded-xl p-3 border border-gray-200 dark:border-slate-700/50">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2 text-purple-600 dark:text-neon-purple text-xs font-bold">
+                                        <i class="fas fa-camera"></i> X-T50 SETUP
+                                    </div>
+                                    <span class="text-[10px] bg-gray-200 dark:bg-slate-800 px-2 py-0.5 rounded text-gray-600 dark:text-gray-300">{{ event.photo.sim }}</span>
                                 </div>
-                                <div class="flex justify-between text-gray-500 dark:text-slate-400 font-mono">
-                                    <span>{{ event.photo.lens }} | {{ event.photo.params }}</span>
+                                <div class="flex justify-between items-end">
+                                    <div class="text-[10px] text-gray-500 dark:text-slate-400 font-mono">
+                                        <div>LENS: {{ event.photo.lens }}</div>
+                                        <div>{{ event.photo.params }}</div>
+                                    </div>
+                                    <div class="text-[10px] text-gray-500 dark:text-slate-300 italic max-w-[60%] text-right">"{{ event.photo.advice }}"</div>
                                 </div>
-                                <div class="mt-1 text-gray-500 dark:text-slate-400 italic">"{{ event.photo.advice }}"</div>
                             </div>
-                            
-                            <button v-if="event.location" @click="openMap(event.location)" class="w-full mt-3 bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 text-xs py-2 rounded-lg transition flex items-center justify-center gap-2">
+
+                            <button v-if="event.location" @click="openMap(event.location)" class="w-full mt-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700/50 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 text-xs py-2 rounded-lg transition flex items-center justify-center gap-2">
                                 <i class="fas fa-location-arrow text-blue-500 dark:text-neon-cyan"></i> 導航至 {{ event.location }}
                             </button>
                         </div>
@@ -275,12 +312,13 @@
                 </div>
             </div>
 
-            <!-- Tab 2: 必買 -->
-            <div v-if="currentTab === 'souvenir'" class="space-y-6 animate-fade-in mt-4">
+            <!-- Tab 2: 必買伴手禮 (Souvenirs) -->
+            <div v-show="currentTab === 'souvenir'" class="space-y-6 pt-4 animate-fade-in">
                 <div class="glass-card rounded-2xl p-5 border-l-4 border-pink-400 dark:border-neon-pink">
                     <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2">北海道神級伴手禮</h3>
                     <p class="text-sm text-gray-500 dark:text-slate-400">點擊筆圖示可編輯內容</p>
                 </div>
+
                 <div v-for="(items, catName) in souvenirList" :key="catName">
                     <div class="flex justify-between items-center mb-3 px-2">
                         <h4 class="text-sm font-bold text-blue-500 dark:text-neon-cyan uppercase tracking-wider">{{ catName }}</h4>
@@ -320,8 +358,8 @@
                 </div>
             </div>
 
-            <!-- Tab 3: 工具 -->
-            <div v-if="currentTab === 'tools'" class="space-y-6 animate-fade-in mt-4">
+            <!-- Tab 3: 工具 (Tools) -->
+            <div v-show="currentTab === 'tools'" class="space-y-6 pt-4 animate-fade-in">
                  <!-- Budget -->
                 <div class="glass-card rounded-2xl p-5">
                      <div class="flex justify-between items-center mb-4">
@@ -332,13 +370,10 @@
                         <div v-for="cat in expenseStats" :style="{width: cat.percent + '%', background: cat.color}"></div>
                     </div>
                     <div class="flex justify-between text-sm font-bold text-gray-800 dark:text-white pt-2 border-t border-gray-200 dark:border-slate-700"><span>總支出</span><span class="text-xl font-mono">¥{{ totalExpense.toLocaleString() }}</span></div>
-                    <div class="mt-4 space-y-3">
+                    <div class="mt-4 space-y-2">
                         <div v-for="(ex, idx) in expenses" class="flex justify-between text-xs py-2 border-b border-gray-100 dark:border-slate-800 items-center group">
                             <span class="text-gray-600 dark:text-slate-300">{{ ex.name }} <span class="text-[10px] text-gray-400 dark:text-slate-500">({{ getExpenseLabel(ex.category) }})</span></span>
-                            <div class="flex items-center gap-3">
-                                <span class="font-mono text-gray-800 dark:text-white">¥{{ ex.amount }}</span>
-                                <button @click="expenses.splice(idx, 1)" class="text-red-400"><i class="fas fa-times"></i></button>
-                            </div>
+                            <div class="flex items-center gap-2"><span class="font-mono text-gray-800 dark:text-white">¥{{ ex.amount }}</span><button @click="expenses.splice(idx, 1)" class="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fas fa-times"></i></button></div>
                         </div>
                     </div>
                 </div>
@@ -357,12 +392,12 @@
                 </div>
             </div>
             
-             <div v-if="currentTab === 'wallet'" class="space-y-6 animate-fade-in mt-4">
+             <div v-show="currentTab === 'wallet'" class="space-y-6 pt-4 animate-fade-in">
                 <div class="glass-card rounded-2xl p-5 border-l-4 border-purple-500">
                     <div class="flex justify-between items-start mb-2"><h3 class="font-bold text-gray-800 dark:text-white text-lg">KOKO Hotel 札幌站前</h3><span class="bg-purple-500 text-white text-[10px] px-2 py-1 rounded">已付款</span></div>
                     <div class="text-sm text-gray-600 dark:text-slate-300 mb-4"><i class="fas fa-map-marker-alt mr-1"></i>札幌市中央區北1条西3丁目3-10</div>
                     <div class="grid grid-cols-2 gap-2 text-xs bg-gray-100 dark:bg-slate-900/50 p-3 rounded-lg mb-3"><div><span class="text-gray-500 dark:text-slate-500 block">入住</span>2026/01/16</div><div><span class="text-gray-500 dark:text-slate-500 block">退房</span>2026/01/20</div><div><span class="text-gray-500 dark:text-slate-500 block">訂單號</span><span class="font-mono text-gray-800 dark:text-white">1616327329115629</span></div><div><span class="text-gray-500 dark:text-slate-500 block">住客</span>CHANG SHENGKAI</div></div>
-                    <button @click="openMap('KOKO HOTEL Sapporo Ekimae')" class="w-full bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-white text-xs py-2 rounded-lg">開啟地圖</button>
+                    <button @click="openMap('KOKO HOTEL Sapporo Ekimae')" class="w-full bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-white text-xs py-2 rounded-lg hover:bg-gray-300">開啟地圖</button>
                 </div>
                 <div class="glass-card rounded-2xl p-5 border-l-4 border-green-500">
                     <div class="flex justify-between items-start mb-2"><h3 class="font-bold text-gray-800 dark:text-white text-lg">WaySim 日本 eSIM</h3><span class="bg-green-500 text-white text-[10px] px-2 py-1 rounded">Softbank</span></div>
@@ -375,9 +410,8 @@
             </div>
         </main>
         
-        <!-- Fixed Bottom Nav -->
-        <nav class="fixed bottom-0 left-0 right-0 z-50 glass-nav pb-safe-bottom">
-            <div class="flex justify-between items-center h-16 px-4">
+        <nav class="glass-nav safe-bottom fixed bottom-0 w-full z-50">
+            <div class="flex justify-between items-center h-16 px-2">
                 <button v-for="tab in tabs" :key="tab.id" @click="currentTab = tab.id" class="flex flex-col items-center justify-center w-full h-full transition-all duration-300 relative group" :class="currentTab === tab.id ? 'text-blue-600 dark:text-neon-cyan -translate-y-1' : 'text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300'">
                     <div class="absolute -top-3 w-8 h-8 rounded-full bg-blue-100 dark:bg-neon-cyan/20 blur-lg transition-all duration-300" :class="currentTab === tab.id ? 'opacity-100' : 'opacity-0'"></div>
                     <i :class="['fas text-lg mb-1', tab.icon]"></i><span class="text-[10px] font-medium">{{ tab.label }}</span>
@@ -391,7 +425,6 @@
 
         createApp({
             setup() {
-                // (Javascript logic remains identical to the previous improved version)
                 const currentTab = ref('itinerary');
                 const activeDayIndex = ref(0);
                 const isDark = ref(true);
@@ -411,7 +444,6 @@
                     { id: 'wallet', icon: 'fa-ticket-alt', label: '憑證' }
                 ];
 
-                // ... (Prep Data, Souvenir List, Expenses, Days Data - all same as before) ...
                 const defaultPrepData = {
                     critical: [
                         { name: 'Visit Japan Web 登錄', checked: false, isEditing: false },
@@ -494,7 +526,7 @@
                     ]},
                     { date: '2026-01-19', shortDate: '1/19 (一)', location: '札幌市區', lat: 43.0618, lon: 141.3545, tenkiUrl: 'https://tenki.jp/forecast/1/2/1400/1100/', events: [
                         { time: '09:00', type: 'food', title: '早餐：Saera 帝王蟹三明治', desc: '必吃！地下街的排隊名店，水果三明治也很強。', tag: '必吃', location: 'Saera', tabelog: { rating: 3.72, url: 'https://tabelog.com/hokkaido/A0101/A010102/1000026/' }, backups: [{name: 'Donguri Odori (麵包)', rating: '3.6'}, {name: 'Baristart Coffee', rating: '3.5'}] },
-                        { time: '10:30', type: 'sight', title: '北海道神宮', desc: '必去！雪中的神宮非常莊嚴。可以買Hello Kitty御守。', location: 'Hokkaido Jingu', isEditing: false, powerSpot: { name: '六花亭 神宮茶屋店', desc: '必吃：判官餅 (現烤麻糬)，熱熱吃超讚' }, photo: { advice: '拍神宮大門與參道，利用透視感。', sim: 'Classic Chrome', lens: '16mm', params: 'F8.0 / 1/250s' }},
+                        { time: '10:30', type: 'sight', title: '北海道神宮', desc: '必去！雪中的神宮非常莊嚴。可以買Hello Kitty御守。', location: 'Hokkaido Jingu', isEditing: false, powerSpot: { name: '六花亭 神宮茶屋店', desc: '必吃：判官餅 (現烤麻糬)，熱熱吃超讚' }, photo: { advice: '拍神宮大門，Classic Chrome。', sim: 'Classic Chrome', lens: '16mm', params: 'F8.0 / 1/250s' }},
                         { time: '13:00', type: 'food', title: '午餐：根室花丸', desc: 'Stellar Place店，迴轉壽司。若排太久可改去 ESTA 拉麵共和國。', location: 'Nemuro Hanamaru', tabelog: { rating: 3.70, url: 'https://tabelog.com/hokkaido/A0101/A010101/1001102/' }, backups: [{name: 'Toriton', rating: '3.65'}, {name: 'Katsu Icckon (豬排)', rating: '3.6'}] },
                         { time: '15:00', type: 'sight', title: '頭大佛 (真駒內滝野靈園)', desc: '老辣妹影片震撼景點，安藤忠雄設計。需搭地鐵到真駒內站轉巴士。', location: 'Hill of the Buddha', isEditing: false, photo: { advice: '充滿幾何與光影的建築。適合用黑白模式 (Acros) 表現莊嚴感。', sim: 'Acros', lens: '16mm', params: 'F8.0 / ISO 200' }},
                         { time: '17:30', type: 'sight', title: '藻岩山夜景', desc: '日本新三大夜景。搭纜車上山，注意保暖！', location: 'Mount Moiwa Ropeway', isEditing: false },
@@ -511,14 +543,71 @@
                 ];
                 
                 const days = ref(daysData);
-                const currentDayTitle = computed(() => `Day ${activeDayIndex.value + 1} | ${days.value[activeDayIndex.value].location}`);
-                const activeDayDate = computed(() => days.value[activeDayIndex.value].date);
 
-                // ... (Methods remain same) ...
+                const toggleDarkMode = () => { isDark.value = !isDark.value; if (isDark.value) document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); };
+                const changeDay = (delta) => { const newIndex = activeDayIndex.value + delta; if (newIndex >= 0 && newIndex < days.value.length) { activeDayIndex.value = newIndex; const main = document.getElementById('main-scroll'); if(main) main.scrollTo({ top: 0, behavior: 'smooth' }); } };
+                const getCategoryColor = (type) => { const colors = { transport: 'bg-blue-500', food: 'bg-orange-400', sight: 'bg-emerald-500', hotel: 'bg-indigo-500', shop: 'bg-pink-500' }; return colors[type] || 'bg-gray-400'; };
+                const getCategoryIcon = (type) => { const icons = { transport: 'fa-bus', food: 'fa-utensils', sight: 'fa-camera', hotel: 'fa-bed', shop: 'fa-shopping-bag' }; return `fas ${icons[type] || 'fa-circle'}`; };
+                const toggleEdit = (d, e) => { days.value[d].events[e].isEditing = !days.value[d].events[e].isEditing; };
+                const openMap = (loc) => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc)}`, '_blank');
+                const openLink = (link) => { if(link) window.open(link, '_blank'); };
+                const openTenki = (url) => window.open(url, '_blank');
+                const getExpenseLabel = (cat) => expenseCategories[cat]?.label || '其他';
+                const addExpense = () => { const name = prompt('項目名稱：'); const amount = parseInt(prompt('金額 (數字)：') || 0); if(name && amount) expenses.value.push({name, amount, category: 'other'}); };
+                const addItem = (listType) => { if (listType === 'critical') prepData.value.critical.push({ name: '新項目', checked: false, isEditing: true }); else if (listType === 'packing') prepData.value.packing.push({ name: '新物品', icon: 'fa-box', checked: false, isEditing: true }); };
+                const deleteItem = (listType, index) => { if (confirm('確定刪除？')) { if (listType === 'critical') prepData.value.critical.splice(index, 1); else prepData.value.packing.splice(index, 1); } };
+                const addSouvenir = (catName) => { souvenirList.value[catName].unshift({ name: '新伴手禮', desc: '描述', shop: '', checked: false, isEditing: true }); };
+                const deleteSouvenir = (catName, index) => { if (confirm('確定刪除？')) souvenirList.value[catName].splice(index, 1); };
+
+                const fetchWeather = async () => {
+                     const promises = days.value.map(async (day) => {
+                        try {
+                            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${day.lat}&longitude=${day.lon}&current=temperature_2m,weather_code&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_mean&timezone=Asia%2FTokyo`);
+                            const data = await res.json();
+                            const idx = 0; 
+                            const code = data.daily.weathercode[idx];
+                            let icon = 'fas fa-cloud'; let desc = '多雲'; let snow = false;
+                            if(code <= 1) { icon = 'fas fa-sun'; desc = '晴天'; }
+                            else if(code >= 71) { icon = 'fas fa-snowflake'; desc = '下雪'; snow = true; }
+                            
+                            // Use Current Temp from API directly
+                            const currentTemp = Math.round(data.current.temperature_2m);
+                            
+                            return {
+                                currentTemp,
+                                maxTemp: Math.round(data.daily.temperature_2m_max[idx]),
+                                minTemp: Math.round(data.daily.temperature_2m_min[idx]),
+                                precip: data.daily.precipitation_probability_mean[idx],
+                                icon, desc, snow
+                            };
+                        } catch { return { currentTemp: -6, maxTemp: -2, minTemp: -8, precip: 80, icon: 'fas fa-snowflake', desc: '預報載入失敗', snow: true }; }
+                     });
+                     weatherData.value = await Promise.all(promises);
+                };
+
+                onMounted(() => {
+                    document.documentElement.classList.add('dark');
+                    const savedDays = localStorage.getItem('hokkaido_trip_days');
+                    if (savedDays) days.value = JSON.parse(savedDays);
+                    const savedPrep = localStorage.getItem('hokkaido_trip_prep');
+                    if (savedPrep) prepData.value = JSON.parse(savedPrep);
+                    const savedSouvenir = localStorage.getItem('hokkaido_trip_souvenir');
+                    if (savedSouvenir) souvenirList.value = JSON.parse(savedSouvenir);
+                    const savedExpenses = localStorage.getItem('hokkaido_trip_expenses');
+                    if (savedExpenses) expenses.value = JSON.parse(savedExpenses);
+                    fetchWeather();
+                });
+                
+                watch(days, (newVal) => localStorage.setItem('hokkaido_trip_days', JSON.stringify(newVal)), { deep: true });
+                watch(prepData, (newVal) => localStorage.setItem('hokkaido_trip_prep', JSON.stringify(newVal)), { deep: true });
+                watch(souvenirList, (newVal) => localStorage.setItem('hokkaido_trip_souvenir', JSON.stringify(newVal)), { deep: true });
+                watch(expenses, (newVal) => localStorage.setItem('hokkaido_trip_expenses', JSON.stringify(newVal)), { deep: true });
 
                 return {
                     currentTab, activeDayIndex, isDark, days, expenses, weatherData, tabs, currentTime,
-                    activeDayDate, currentDayTitle, totalExpense, expenseStats, prepData, souvenirList, expenseCategories,
+                    activeDayDate: computed(() => days.value[activeDayIndex.value].date),
+                    currentDayTitle: computed(() => `Day ${activeDayIndex.value + 1} | ${days.value[activeDayIndex.value].location}`),
+                    totalExpense, expenseStats, prepData, souvenirList,
                     toggleDarkMode, changeDay, getCategoryColor, getCategoryIcon, toggleEdit, openMap, openLink, openTenki, addExpense, getExpenseLabel,
                     addItem, deleteItem, addSouvenir, deleteSouvenir
                 };
