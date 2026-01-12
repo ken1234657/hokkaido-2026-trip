@@ -8,8 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Vue 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -18,10 +16,7 @@
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Zen Kaku Gothic New', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
+                    fontFamily: { mono: ['monospace'] },
                     colors: {
                         'neon-cyan': '#22d3ee',
                         'neon-pink': '#f472b6',
@@ -33,118 +28,117 @@
         }
     </script>
     <style>
+        [v-cloak] { display: none !important; }
         body { 
             -webkit-tap-highlight-color: transparent; 
+            height: 100dvh; 
+            overflow: hidden;
+            background-color: #0f172a;
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
-        
-        /* Dynamic Glassmorphism System */
-        /* Light Mode Default */
+        .safe-bottom-scroll { padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
+
         .glass-card {
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(0, 0, 0, 0.05);
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
         .glass-nav {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
             border-top: 1px solid rgba(0, 0, 0, 0.05);
         }
-
-        /* Dark Mode Overrides */
+        
         .dark .glass-card {
-            background: rgba(30, 41, 59, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: none;
         }
         .dark .glass-nav {
-            background: rgba(15, 23, 42, 0.9);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(15, 23, 42, 0.95);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
-        
+
         .custom-checkbox:checked {
             background-color: #22d3ee;
             border-color: #22d3ee;
         }
+        
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-[#0f172a] text-slate-800 dark:text-slate-200 font-sans h-screen overflow-hidden flex flex-col transition-colors duration-300">
+<body class="bg-gray-100 dark:bg-[#0f172a] text-slate-800 dark:text-slate-200 font-sans flex flex-col transition-colors duration-300">
 
-    <div id="app" class="flex flex-col h-full relative">
+    <div id="app" class="flex flex-col h-full relative" v-cloak>
         
         <!-- Header -->
-        <header class="pt-12 pb-2 px-6 flex justify-between items-center z-20 glass-nav sticky top-0 transition-colors duration-300">
+        <header class="pt-12 pb-2 px-6 flex justify-between items-center z-20 glass-nav sticky top-0 transition-colors duration-300 flex-shrink-0">
             <div>
                 <h1 class="text-[10px] font-bold tracking-[0.2em] text-blue-600 dark:text-neon-cyan uppercase mb-1">HOKKAIDO 2026</h1>
                 <div class="text-xl font-bold flex items-center gap-2">
-                    <span v-if="currentTab === 'prep'">行前準備 & Check</span>
+                    <span v-if="currentTab === 'prep'">行前準備</span>
                     <span v-else-if="currentTab === 'itinerary'">{{ currentDayTitle }}</span>
-                    <span v-else-if="currentTab === 'souvenir'">必買伴手禮清單</span>
-                    <span v-else-if="currentTab === 'tools'">旅行工具箱</span>
-                    <span v-else-if="currentTab === 'wallet'">電子憑證夾</span>
+                    <span v-else-if="currentTab === 'souvenir'">伴手禮</span>
+                    <span v-else-if="currentTab === 'tools'">工具</span>
+                    <span v-else-if="currentTab === 'wallet'">憑證</span>
                 </div>
             </div>
-            <!-- Mode Toggle -->
-            <button @click="toggleDarkMode" class="w-8 h-8 rounded-full bg-gray-200 dark:bg-slate-800 flex items-center justify-center text-xs transition-colors hover:bg-gray-300 dark:hover:bg-slate-700">
+            <button @click="toggleDarkMode" class="w-9 h-9 rounded-full bg-gray-200 dark:bg-slate-800 flex items-center justify-center text-sm transition-colors hover:bg-gray-300 dark:hover:bg-slate-700 shadow-sm border border-gray-300 dark:border-slate-700">
                 <i :class="isDark ? 'fas fa-sun text-yellow-400' : 'fas fa-moon text-slate-400'"></i>
             </button>
         </header>
 
         <!-- Main Content -->
-        <main id="main-scroll" class="flex-1 overflow-y-auto hide-scrollbar pb-28 px-4 scroll-smooth">
+        <main id="main-scroll" class="flex-1 overflow-y-auto hide-scrollbar safe-bottom-scroll px-4 scroll-smooth">
             
-            <!-- Tab 0: 行前準備 -->
+            <!-- Tab 0: Prep -->
             <div v-show="currentTab === 'prep'" class="space-y-6 pt-4 animate-fade-in">
-                <!-- Critical Items -->
                 <div class="glass-card rounded-2xl p-6 relative overflow-hidden group">
-                    <div class="absolute -right-10 -top-10 w-32 h-32 bg-blue-400/10 dark:bg-neon-cyan/20 rounded-full blur-3xl transition-all"></div>
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-bold flex items-center gap-2"><i class="fas fa-passport text-blue-500 dark:text-neon-cyan"></i> 關鍵手續</h3>
-                        <button @click="addItem('critical')" class="text-xs bg-blue-100 text-blue-600 dark:bg-neon-cyan dark:text-slate-900 px-2 py-1 rounded font-bold hover:opacity-80"><i class="fas fa-plus"></i></button>
+                        <button @click="openPrepModal('critical')" class="text-xs bg-blue-100 text-blue-600 dark:bg-neon-cyan dark:text-slate-900 px-2 py-1 rounded font-bold hover:opacity-80"><i class="fas fa-plus"></i></button>
                     </div>
                     <div class="space-y-3">
-                        <div v-for="(item, idx) in prepData.critical" :key="idx" class="flex items-center gap-2 group/item">
+                        <div v-for="(item, idx) in prepData.critical" :key="idx" class="flex items-center gap-2">
                              <label class="flex-1 flex items-center gap-3 p-3 rounded-xl bg-gray-50/50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700/50 cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-800 transition">
                                 <input type="checkbox" v-model="item.checked" class="w-5 h-5 rounded border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-blue-500 dark:text-neon-cyan focus:ring-blue-500 dark:focus:ring-neon-cyan custom-checkbox">
-                                <input v-if="item.isEditing" v-model="item.name" class="bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-sm w-full" @blur="item.isEditing = false" @keyup.enter="item.isEditing = false">
+                                <input v-if="item.isEditing" v-model="item.name" @focus="selectText($event)" class="bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-sm w-full" @blur="item.isEditing = false" @keyup.enter="item.isEditing = false">
                                 <span v-else :class="{'line-through text-gray-400 dark:text-gray-500': item.checked}">{{ item.name }}</span>
                             </label>
-                            <div class="flex flex-col gap-1 opacity-100 sm:opacity-0 sm:group-hover/item:opacity-100 transition-opacity">
-                                <button @click="item.isEditing = !item.isEditing" class="w-6 h-6 rounded bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-slate-300 flex items-center justify-center text-[10px]"><i class="fas fa-pen"></i></button>
-                                <button @click="deleteItem('critical', idx)" class="w-6 h-6 rounded bg-red-100 dark:bg-red-900/50 text-red-500 dark:text-red-400 flex items-center justify-center text-[10px]"><i class="fas fa-trash"></i></button>
+                            <div class="flex flex-col gap-1">
+                                <button @click="item.isEditing = !item.isEditing" class="w-8 h-8 rounded bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-slate-300 flex items-center justify-center text-xs"><i class="fas fa-pen"></i></button>
+                                <button @click="deleteItem('critical', idx)" class="w-8 h-8 rounded bg-red-100 dark:bg-red-900/50 text-red-500 dark:text-red-400 flex items-center justify-center text-xs"><i class="fas fa-trash"></i></button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Packing List -->
                 <div class="glass-card rounded-2xl p-6">
                     <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-bold flex items-center gap-2"><i class="fas fa-snowflake text-blue-500 dark:text-neon-cyan"></i> 雪國裝備 & 行李</h3>
-                        <button @click="addItem('packing')" class="text-xs bg-blue-100 text-blue-600 dark:bg-neon-cyan dark:text-slate-900 px-2 py-1 rounded font-bold hover:opacity-80"><i class="fas fa-plus"></i></button>
+                        <h3 class="text-lg font-bold flex items-center gap-2"><i class="fas fa-snowflake text-blue-500 dark:text-neon-cyan"></i> 雪國裝備</h3>
+                        <button @click="openPrepModal('packing')" class="text-xs bg-blue-100 text-blue-600 dark:bg-neon-cyan dark:text-slate-900 px-2 py-1 rounded font-bold hover:opacity-80"><i class="fas fa-plus"></i></button>
                     </div>
                     <div class="grid grid-cols-1 gap-2">
                         <div v-for="(item, idx) in prepData.packing" :key="idx" 
                              class="flex items-center justify-between p-3 rounded-xl transition-all group/item"
                              :class="item.checked ? 'bg-gray-100/50 dark:bg-slate-800/30 opacity-50' : 'bg-gray-50 dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-slate-700'">
-                            <span class="flex items-center gap-3 flex-1" @click="!item.isEditing && (item.checked = !item.checked)">
-                                <i :class="['fas', item.icon || 'fa-suitcase']" class="text-gray-400 dark:text-slate-400 w-5 text-center"></i>
-                                <input v-if="item.isEditing" v-model="item.name" class="bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-sm w-full dark:text-white" @click.stop @blur="item.isEditing = false" @keyup.enter="item.isEditing = false">
+                            <div class="flex items-center gap-3 flex-1 cursor-pointer" @click="!item.isEditing && (item.checked = !item.checked)">
+                                <i :class="['fas', item.icon || 'fa-box']" class="text-gray-400 dark:text-slate-400 w-5 text-center"></i>
+                                <input v-if="item.isEditing" v-model="item.name" @focus="selectText($event)" class="bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-sm w-full dark:text-white" @click.stop @blur="item.isEditing = false" @keyup.enter="item.isEditing = false">
                                 <span v-else :class="{'line-through': item.checked}">{{ item.name }}</span>
-                            </span>
-                            
+                            </div>
                             <div class="flex items-center gap-2">
                                 <i v-if="item.checked && !item.isEditing" class="fas fa-check-circle text-blue-500 dark:text-neon-cyan"></i>
                                 <i v-if="!item.checked && !item.isEditing" class="far fa-circle text-gray-400 dark:text-slate-600"></i>
-                                
                                 <div class="flex gap-1 ml-2">
-                                    <button @click.stop="item.isEditing = !item.isEditing" class="w-6 h-6 rounded bg-gray-200 dark:bg-slate-600 text-gray-500 dark:text-slate-300 flex items-center justify-center text-[10px]"><i class="fas fa-pen"></i></button>
-                                    <button @click.stop="deleteItem('packing', idx)" class="w-6 h-6 rounded bg-red-100 dark:bg-red-900/50 text-red-500 dark:text-red-400 flex items-center justify-center text-[10px]"><i class="fas fa-trash"></i></button>
+                                    <button @click.stop="item.isEditing = !item.isEditing" class="w-8 h-8 rounded bg-gray-200 dark:bg-slate-600 text-gray-500 dark:text-slate-300 flex items-center justify-center text-xs"><i class="fas fa-pen"></i></button>
+                                    <button @click.stop="deleteItem('packing', idx)" class="w-8 h-8 rounded bg-red-100 dark:bg-red-900/50 text-red-500 dark:text-red-400 flex items-center justify-center text-xs"><i class="fas fa-trash"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -152,35 +146,24 @@
                 </div>
             </div>
 
-            <!-- Tab 1: 行程 (Itinerary) -->
+            <!-- Tab 1: Itinerary -->
             <div v-show="currentTab === 'itinerary'" class="space-y-6 pt-4">
-                
-                <!-- Weather Widget -->
                 <div class="rounded-3xl p-5 text-white shadow-xl relative overflow-hidden min-h-[140px] border border-white/10"
-                     :class="activeDayIndex === 2 ? 'bg-gradient-to-br from-gray-600 to-gray-800' : 'bg-gradient-to-br from-blue-500 to-blue-900'">
-                    
+                     :class="activeDayIndex === 2 ? 'bg-gradient-to-br from-slate-700 to-gray-800' : 'bg-gradient-to-br from-blue-500 to-blue-900'">
                     <div class="flex justify-between items-start z-10 relative h-full">
                         <div class="flex-1">
                             <div class="flex items-center gap-2 opacity-80 mb-2">
                                 <i class="fas fa-map-marker-alt text-pink-300 dark:text-neon-pink"></i>
-                                <span class="text-sm font-bold tracking-wide">{{ days[activeDayIndex].location }}</span>
+                                <span class="text-sm font-bold tracking-wide">{{ safeCurrentDay.location }}</span>
                                 <span class="text-[10px] opacity-60">| {{ activeDayDate }}</span>
                             </div>
-
                             <div v-if="weatherData[activeDayIndex]" class="mt-1">
                                 <div class="flex items-end gap-3">
-                                    <div class="text-6xl font-bold tracking-tighter leading-none">
-                                        {{ weatherData[activeDayIndex].currentTemp }}°
-                                    </div>
-                                    <div class="font-mono text-cyan-200 dark:text-neon-cyan text-lg font-bold mb-1 tracking-widest">
-                                        {{ currentTime }}
-                                    </div>
+                                    <div class="text-6xl font-bold tracking-tighter leading-none">{{ weatherData[activeDayIndex].currentTemp }}°</div>
+                                    <div class="font-mono text-cyan-200 dark:text-neon-cyan text-lg font-bold mb-1 tracking-widest">{{ currentTime }}</div>
                                 </div>
                                 <div class="text-sm mt-3 flex items-center gap-3 font-medium opacity-90">
-                                    <div class="flex items-center gap-1">
-                                        <i :class="weatherData[activeDayIndex].icon" class="text-yellow-300"></i>
-                                        {{ weatherData[activeDayIndex].desc }}
-                                    </div>
+                                    <div class="flex items-center gap-1"><i :class="weatherData[activeDayIndex].icon" class="text-yellow-300"></i>{{ weatherData[activeDayIndex].desc }}</div>
                                     <div class="h-4 w-[1px] bg-white/30"></div>
                                     <div class="flex items-center gap-2 text-xs">
                                         <span class="text-red-200"><i class="fas fa-arrow-up"></i> {{ weatherData[activeDayIndex].maxTemp }}°</span>
@@ -188,24 +171,16 @@
                                     </div>
                                 </div>
                             </div>
-                            <div v-else class="mt-2 animate-pulse">
-                                <div class="h-12 w-32 bg-white/20 rounded mb-2"></div>
-                                <div class="h-4 w-20 bg-white/20 rounded"></div>
-                            </div>
                         </div>
-                        
                         <button @click="openTenki(days[activeDayIndex].tenkiUrl)" class="bg-white/10 backdrop-blur-md border border-white/20 px-3 py-2 rounded-xl flex flex-col items-center gap-1 transition-transform active:scale-95 hover:bg-white/20">
-                            <span class="text-[10px] font-bold tracking-wide">TENKI.jp</span>
-                            <i class="fas fa-external-link-alt text-[10px]"></i>
+                            <span class="text-[10px] font-bold tracking-wide">TENKI.jp</span><i class="fas fa-external-link-alt text-[10px]"></i>
                         </button>
                     </div>
                     <i class="fas fa-snowflake text-[10rem] opacity-5 absolute -right-8 -bottom-10 rotate-12"></i>
                 </div>
 
-                <!-- Date Scroller -->
                 <div class="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
-                    <button v-for="(day, index) in days" :key="index" 
-                        @click="changeDay(index - activeDayIndex)"
+                    <button v-for="(day, index) in days" :key="index" @click="changeDay(index - activeDayIndex)" 
                         :class="activeDayIndex === index ? 'bg-blue-600 text-white dark:bg-neon-cyan dark:text-slate-900 shadow-md transform scale-105' : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-slate-400 border border-gray-200 dark:border-slate-700'"
                         class="flex-shrink-0 px-4 py-3 rounded-2xl flex flex-col items-center min-w-[70px] transition-all duration-300">
                         <span class="text-[10px] font-bold uppercase opacity-80">Day {{ index + 1 }}</span>
@@ -213,17 +188,9 @@
                     </button>
                 </div>
 
-                <!-- Timeline -->
-                <div class="space-y-4 relative pl-4 border-l border-gray-200 dark:border-slate-700 ml-2">
+                <div class="space-y-4 relative pl-4 border-l border-gray-200 dark:border-slate-700 ml-2" v-if="days[activeDayIndex]">
                     <div v-for="(event, eIndex) in days[activeDayIndex].events" :key="eIndex" class="relative pl-6 pb-4 group">
-                        
-                        <!-- Timeline Dot -->
-                        <div class="absolute -left-[21px] top-0 w-10 h-10 rounded-full border-4 border-gray-100 dark:border-bg-main flex items-center justify-center z-10 shadow-lg"
-                             :class="getCategoryColor(event.type)">
-                            <i :class="getCategoryIcon(event.type)" class="text-white text-xs"></i>
-                        </div>
-
-                        <!-- Card -->
+                        <div class="absolute -left-[21px] top-0 w-10 h-10 rounded-full border-4 border-gray-100 dark:border-bg-main flex items-center justify-center z-10 shadow-lg" :class="getCategoryColor(event.type)"><i :class="getCategoryIcon(event.type)" class="text-white text-xs"></i></div>
                         <div class="glass-card rounded-2xl p-4 transition-all active:scale-[0.99] hover:bg-white/90 dark:hover:bg-slate-800/50">
                             <div class="flex gap-4">
                                 <div class="flex-1 min-w-0">
@@ -232,93 +199,76 @@
                                             <span class="font-mono text-blue-600 dark:text-neon-cyan font-bold text-sm">{{ event.time }}</span>
                                             <span v-if="event.tag" class="text-[10px] font-bold text-slate-900 bg-pink-200 dark:bg-neon-pink px-2 py-0.5 rounded-full">{{ event.tag }}</span>
                                         </div>
-                                        <button @click="toggleEdit(activeDayIndex, eIndex)" class="text-gray-400 dark:text-slate-500 hover:text-blue-500 dark:hover:text-white">
-                                            <i :class="event.isEditing ? 'fas fa-check text-green-500 dark:text-green-400' : 'fas fa-pen'"></i>
-                                        </button>
+                                        <div class="flex gap-2">
+                                            <button @click="toggleEdit(activeDayIndex, eIndex)" class="text-gray-400 dark:text-slate-500 hover:text-blue-500 dark:hover:text-white"><i :class="event.isEditing ? 'fas fa-check text-green-500 dark:text-green-400' : 'fas fa-pen'"></i></button>
+                                            <button @click="deleteEvent(activeDayIndex, eIndex)" class="text-gray-400 dark:text-slate-500 hover:text-red-500"><i class="fas fa-trash"></i></button>
+                                        </div>
                                     </div>
                                     
                                     <div v-if="!event.isEditing">
-                                        <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-1 leading-snug flex items-center gap-2">
-                                            {{ event.title }}
-                                            <button v-if="event.tabelog" @click.stop="openLink(event.tabelog.url)" class="bg-[#fa8304] text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 shadow hover:opacity-80">
-                                                <span class="font-bold">{{ event.tabelog.rating }}</span>
-                                            </button>
-                                        </h3>
-                                        <p class="text-sm text-gray-600 dark:text-slate-400 mb-2 leading-relaxed whitespace-pre-line">{{ event.desc }}</p>
+                                        <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-1 leading-snug">{{ event.title }}</h3>
+                                        <p class="text-sm text-gray-600 dark:text-slate-400 mb-2 whitespace-pre-line">{{ event.desc }}</p>
                                     </div>
-
                                     <div v-else class="space-y-2 mb-3">
-                                        <input v-model="event.title" class="w-full bg-gray-100 dark:bg-slate-900 rounded p-2 text-sm border border-gray-300 dark:border-slate-700 text-gray-800 dark:text-white">
+                                        <input v-model="event.title" @focus="selectText($event)" class="w-full bg-gray-100 dark:bg-slate-900 rounded p-2 text-sm border border-gray-300 dark:border-slate-700 text-gray-800 dark:text-white">
                                         <textarea v-model="event.desc" rows="3" class="w-full bg-gray-100 dark:bg-slate-900 rounded p-2 text-sm border border-gray-300 dark:border-slate-700 text-gray-800 dark:text-white"></textarea>
+                                        <select v-model="event.type" class="w-full bg-gray-100 dark:bg-slate-900 border rounded p-2 text-sm border-gray-300 dark:border-slate-700 text-gray-800 dark:text-white">
+                                            <option value="transport">交通</option>
+                                            <option value="food">美食</option>
+                                            <option value="sight">景點</option>
+                                            <option value="shop">購物</option>
+                                            <option value="hotel">住宿</option>
+                                        </select>
                                     </div>
-
-                                    <!-- Highlights -->
                                     <div v-if="event.highlights" class="flex flex-wrap gap-2 mb-2">
                                         <span v-for="hl in event.highlights" class="text-[10px] text-blue-600 dark:text-neon-cyan border border-blue-200 dark:border-neon-cyan/30 px-2 py-0.5 rounded-full bg-blue-50 dark:bg-neon-cyan/5">{{ hl }}</span>
                                     </div>
-
-                                    <!-- Plan B & Power Spot -->
                                     <div v-if="!event.isEditing && (event.backups || event.powerSpot)" class="mt-3 pt-2 border-t border-gray-100 dark:border-slate-700/50">
                                         <div v-if="event.backups" class="mb-2">
                                             <div class="text-[10px] font-bold text-gray-400 dark:text-slate-500 uppercase mb-1">Plan B (備案)</div>
-                                            <div v-for="bk in event.backups" class="text-xs text-gray-600 dark:text-slate-300 flex items-center gap-2">
-                                                <i class="fas fa-angle-right text-gray-400 dark:text-slate-600"></i> {{ bk.name }}
-                                                <span v-if="bk.rating" class="text-[#fa8304] font-bold">{{ bk.rating }}</span>
-                                            </div>
+                                            <div v-for="bk in event.backups" class="text-xs text-gray-600 dark:text-slate-300 flex items-center gap-2"><i class="fas fa-angle-right text-gray-400 dark:text-slate-600"></i> {{ bk.name }} <span v-if="bk.rating" class="text-[#fa8304] font-bold">{{ bk.rating }}</span></div>
                                         </div>
                                         <div v-if="event.powerSpot" class="flex items-center gap-2 text-xs text-coffee bg-orange-50 dark:bg-coffee/10 p-2 rounded-lg border border-orange-100 dark:border-coffee/20">
                                             <i class="fas fa-mug-hot text-lg"></i>
-                                            <div>
-                                                <div class="font-bold text-coffee dark:text-coffee">{{ event.powerSpot.name }}</div>
-                                                <div class="text-[10px] text-gray-500 dark:text-slate-400">{{ event.powerSpot.desc }}</div>
-                                            </div>
+                                            <div><div class="font-bold text-coffee dark:text-coffee">{{ event.powerSpot.name }}</div><div class="text-[10px] text-gray-500 dark:text-slate-400">{{ event.powerSpot.desc }}</div></div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <!-- XT-50 Dashboard -->
                             <div v-if="event.photo" class="mt-3 bg-gray-50 dark:bg-slate-900/80 rounded-xl p-3 border border-gray-200 dark:border-slate-700/50">
                                 <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center gap-2 text-purple-600 dark:text-neon-purple text-xs font-bold">
-                                        <i class="fas fa-camera"></i> X-T50 SETUP
-                                    </div>
+                                    <div class="flex items-center gap-2 text-purple-600 dark:text-neon-purple text-xs font-bold"><i class="fas fa-camera"></i> X-T50 SETUP</div>
                                     <span class="text-[10px] bg-gray-200 dark:bg-slate-800 px-2 py-0.5 rounded text-gray-600 dark:text-gray-300">{{ event.photo.sim }}</span>
                                 </div>
                                 <div class="flex justify-between items-end">
-                                    <div class="text-[10px] text-gray-500 dark:text-slate-400 font-mono">
-                                        <div>LENS: {{ event.photo.lens }}</div>
-                                        <div>{{ event.photo.params }}</div>
-                                    </div>
+                                    <div class="text-[10px] text-gray-500 dark:text-slate-400 font-mono"><div>LENS: {{ event.photo.lens }}</div><div>{{ event.photo.params }}</div></div>
                                     <div class="text-[10px] text-gray-500 dark:text-slate-300 italic max-w-[60%] text-right">"{{ event.photo.advice }}"</div>
                                 </div>
                             </div>
-
-                            <button v-if="event.location" @click="openMap(event.location)" class="w-full mt-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700/50 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 text-xs py-2 rounded-lg transition flex items-center justify-center gap-2">
-                                <i class="fas fa-location-arrow text-blue-500 dark:text-neon-cyan"></i> 導航至 {{ event.location }}
-                            </button>
+                            <!-- Image Upload -->
+                            <div class="w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 bg-gray-200 dark:bg-gray-700 relative cursor-pointer group/img mt-2" @click="triggerImageUpload('event', activeDayIndex, eIndex)">
+                                <img v-if="event.image" :src="event.image" class="w-full h-full object-cover">
+                                <div v-else class="w-full h-full flex flex-col items-center justify-center text-gray-400 dark:text-slate-500"><i class="fas fa-camera text-xl mb-1"></i><span class="text-[9px]">上傳圖片</span></div>
+                            </div>
+                            <button v-if="event.location" @click="openMap(event.location)" class="w-full mt-3 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700/50 dark:hover:bg-slate-700 text-gray-600 dark:text-slate-300 text-xs py-2 rounded-lg transition flex items-center justify-center gap-2"><i class="fas fa-location-arrow text-blue-500 dark:text-neon-cyan"></i> 導航至 {{ event.location }}</button>
                         </div>
                     </div>
                 </div>
+                
+                <button @click="addEvent(activeDayIndex)" class="w-full py-3 rounded-xl border-2 border-dashed border-gray-300 dark:border-slate-600 text-gray-400 dark:text-slate-400 text-sm font-bold hover:bg-gray-50 dark:hover:bg-slate-800 transition mb-4"><i class="fas fa-plus mr-2"></i> 新增行程</button>
 
-                <!-- Day Nav -->
-                <div class="flex gap-4 mt-8 px-2">
-                    <button @click="changeDay(-1)" :disabled="activeDayIndex === 0" class="flex-1 glass-card py-3 rounded-xl text-sm font-bold disabled:opacity-30 disabled:cursor-not-allowed">
-                        <i class="fas fa-arrow-left mr-2"></i> Prev
-                    </button>
-                    <button @click="changeDay(1)" :disabled="activeDayIndex === days.length - 1" class="flex-1 bg-blue-600 dark:bg-neon-cyan text-white dark:text-slate-900 py-3 rounded-xl text-sm font-bold shadow-lg disabled:opacity-30 disabled:shadow-none">
-                        Next <i class="fas fa-arrow-right ml-2"></i>
-                    </button>
+                <div class="flex gap-4 mt-4 px-2">
+                    <button @click="changeDay(-1)" :disabled="activeDayIndex === 0" class="flex-1 glass-card py-3 rounded-xl text-sm font-bold disabled:opacity-30 disabled:cursor-not-allowed"><i class="fas fa-arrow-left mr-2"></i> Prev</button>
+                    <button @click="changeDay(1)" :disabled="activeDayIndex === days.length - 1" class="flex-1 bg-blue-600 dark:bg-neon-cyan text-white dark:text-slate-900 py-3 rounded-xl text-sm font-bold shadow-lg disabled:opacity-30 disabled:shadow-none">Next <i class="fas fa-arrow-right ml-2"></i></button>
                 </div>
             </div>
 
-            <!-- Tab 2: 必買伴手禮 (Souvenirs) -->
+            <!-- Tab 2: Souvenir -->
             <div v-show="currentTab === 'souvenir'" class="space-y-6 pt-4 animate-fade-in">
                 <div class="glass-card rounded-2xl p-5 border-l-4 border-pink-400 dark:border-neon-pink">
                     <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2">北海道神級伴手禮</h3>
-                    <p class="text-sm text-gray-500 dark:text-slate-400">點擊筆圖示可編輯內容</p>
+                    <p class="text-sm text-gray-500 dark:text-slate-400">點擊圖片可上傳實拍</p>
                 </div>
-
                 <div v-for="(items, catName) in souvenirList" :key="catName">
                     <div class="flex justify-between items-center mb-3 px-2">
                         <h4 class="text-sm font-bold text-blue-500 dark:text-neon-cyan uppercase tracking-wider">{{ catName }}</h4>
@@ -328,7 +278,11 @@
                         <div v-for="(item, idx) in items" :key="idx" 
                              class="glass-card p-4 rounded-xl flex flex-col gap-2 transition-all border border-gray-100 dark:border-slate-700/50 group/item"
                              :class="{'opacity-50 grayscale': item.checked && !item.isEditing}">
-                            <div class="flex justify-between items-start">
+                            <div class="flex gap-3">
+                                <div class="w-16 h-16 flex-shrink-0 rounded-lg bg-gray-200 dark:bg-slate-800 relative cursor-pointer overflow-hidden group/img" @click="triggerImageUpload('souvenir', catName, idx)">
+                                    <img v-if="item.image" :src="item.image" class="w-full h-full object-cover">
+                                    <div v-else class="w-full h-full flex items-center justify-center text-gray-400 dark:text-slate-500"><i class="fas fa-camera"></i></div>
+                                </div>
                                 <div class="flex-1" @click="!item.isEditing && (item.checked = !item.checked)">
                                     <div v-if="!item.isEditing">
                                         <div class="font-bold text-gray-800 dark:text-white text-base">{{ item.name }}</div>
@@ -336,20 +290,16 @@
                                         <div v-if="item.shop" class="text-[10px] text-pink-500 dark:text-neon-pink mt-1"><i class="fas fa-store-alt"></i> {{ item.shop }}</div>
                                     </div>
                                     <div v-else class="space-y-2">
-                                        <input v-model="item.name" placeholder="商品名稱" class="w-full bg-gray-100 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-sm text-gray-800 dark:text-white">
+                                        <input v-model="item.name" @focus="selectText($event)" placeholder="商品名稱" class="w-full bg-gray-100 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-sm text-gray-800 dark:text-white">
                                         <input v-model="item.desc" placeholder="描述/備註" class="w-full bg-gray-100 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-xs text-gray-800 dark:text-white">
                                         <input v-model="item.shop" placeholder="購買地點" class="w-full bg-gray-100 dark:bg-slate-900 border border-gray-300 dark:border-slate-600 rounded px-2 py-1 text-xs text-gray-800 dark:text-white">
                                     </div>
                                 </div>
-                                <div class="flex flex-col gap-2 items-center ml-3">
-                                     <div v-if="!item.isEditing" class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors"
-                                         :class="item.checked ? 'border-blue-500 dark:border-neon-cyan bg-blue-500 dark:bg-neon-cyan text-white dark:text-slate-900' : 'border-gray-400 dark:border-slate-500'"
-                                         @click="item.checked = !item.checked">
-                                        <i v-if="item.checked" class="fas fa-check text-xs"></i>
-                                    </div>
+                                <div class="flex flex-col gap-2 items-center">
+                                     <div v-if="!item.isEditing" class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors" :class="item.checked ? 'border-blue-500 dark:border-neon-cyan bg-blue-500 dark:bg-neon-cyan text-white dark:text-slate-900' : 'border-gray-400 dark:border-slate-500'" @click="item.checked = !item.checked"><i v-if="item.checked" class="fas fa-check text-xs"></i></div>
                                     <div class="flex gap-1">
-                                        <button @click="item.isEditing = !item.isEditing" class="w-6 h-6 rounded bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-300 flex items-center justify-center text-[10px] hover:text-black dark:hover:text-white"><i class="fas fa-pen"></i></button>
-                                        <button @click="deleteSouvenir(catName, idx)" class="w-6 h-6 rounded bg-red-100 dark:bg-red-900/50 text-red-500 dark:text-red-400 flex items-center justify-center text-[10px] hover:text-red-700 dark:hover:text-red-200"><i class="fas fa-trash"></i></button>
+                                        <button @click="item.isEditing = !item.isEditing" class="w-8 h-8 rounded bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-300 flex items-center justify-center text-xs hover:text-black dark:hover:text-white"><i class="fas fa-pen"></i></button>
+                                        <button @click="deleteSouvenir(catName, idx)" class="w-8 h-8 rounded bg-red-100 dark:bg-red-900/50 text-red-500 dark:text-red-400 flex items-center justify-center text-xs hover:text-red-700 dark:hover:text-red-200"><i class="fas fa-trash"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -358,25 +308,39 @@
                 </div>
             </div>
 
-            <!-- Tab 3: 工具 (Tools) -->
+            <!-- Tab 3: Tools -->
             <div v-show="currentTab === 'tools'" class="space-y-6 pt-4 animate-fade-in">
                  <!-- Budget -->
                 <div class="glass-card rounded-2xl p-5">
                      <div class="flex justify-between items-center mb-4">
                         <h3 class="font-bold text-lg text-gray-800 dark:text-white"><i class="fas fa-yen-sign text-blue-500 dark:text-neon-cyan mr-2"></i>記帳預算</h3>
-                        <button @click="addExpense" class="w-8 h-8 rounded-full bg-blue-500 dark:bg-neon-cyan text-white dark:text-slate-900 flex items-center justify-center hover:opacity-80"><i class="fas fa-plus"></i></button>
+                        <div class="flex gap-2">
+                             <button @click="toggleCurrency" class="text-xs bg-gray-200 dark:bg-slate-700 px-3 py-1 rounded-full font-bold text-gray-700 dark:text-white">{{ currencyMode }}</button>
+                             <button @click="openExpenseModal(null)" class="w-8 h-8 rounded-full bg-blue-500 dark:bg-neon-cyan text-white dark:text-slate-900 flex items-center justify-center hover:opacity-80"><i class="fas fa-plus"></i></button>
+                        </div>
                     </div>
                     <div class="flex h-3 rounded-full overflow-hidden mb-4 bg-gray-200 dark:bg-slate-800">
                         <div v-for="cat in expenseStats" :style="{width: cat.percent + '%', background: cat.color}"></div>
                     </div>
-                    <div class="flex justify-between text-sm font-bold text-gray-800 dark:text-white pt-2 border-t border-gray-200 dark:border-slate-700"><span>總支出</span><span class="text-xl font-mono">¥{{ totalExpense.toLocaleString() }}</span></div>
+                    <div class="flex justify-between text-sm font-bold text-gray-800 dark:text-white pt-2 border-t border-gray-200 dark:border-slate-700"><span>總支出</span><span class="text-xl font-mono">{{ formatCurrency(totalExpense) }}</span></div>
                     <div class="mt-4 space-y-2">
                         <div v-for="(ex, idx) in expenses" class="flex justify-between text-xs py-2 border-b border-gray-100 dark:border-slate-800 items-center group">
-                            <span class="text-gray-600 dark:text-slate-300">{{ ex.name }} <span class="text-[10px] text-gray-400 dark:text-slate-500">({{ getExpenseLabel(ex.category) }})</span></span>
-                            <div class="flex items-center gap-2"><span class="font-mono text-gray-800 dark:text-white">¥{{ ex.amount }}</span><button @click="expenses.splice(idx, 1)" class="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fas fa-times"></i></button></div>
+                            <div class="flex flex-col">
+                                <span class="text-gray-600 dark:text-slate-300 font-bold">{{ ex.name }}</span>
+                                <span class="text-[10px] text-gray-400 dark:text-slate-500">{{ ex.date || '無日期' }} | {{ getExpenseLabel(ex.category) }}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <div class="text-right">
+                                    <span class="font-mono text-gray-800 dark:text-white block">{{ ex.currency }} {{ ex.amount.toLocaleString() }}</span>
+                                    <span class="font-mono text-[9px] text-gray-400 dark:text-slate-500 block">{{ ex.currency === 'JPY' ? '≈ NT$ ' + Math.round(ex.amount * 0.22).toLocaleString() : '≈ ¥ ' + Math.round(ex.amount / 0.22).toLocaleString() }}</span>
+                                </div>
+                                <button @click="openExpenseModal(idx)" class="text-gray-400 hover:text-blue-500 dark:hover:text-white"><i class="fas fa-pen"></i></button>
+                                <button @click="expenses.splice(idx, 1)" class="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fas fa-trash"></i></button>
+                            </div>
                         </div>
                     </div>
                 </div>
+                 <!-- Flight Info -->
                  <div class="glass-card rounded-2xl p-5">
                     <h3 class="font-bold text-lg text-gray-800 dark:text-white mb-4"><i class="fas fa-plane text-blue-500 dark:text-neon-cyan mr-2"></i>航班資訊</h3>
                     <div class="flex justify-between items-center mb-4">
@@ -402,10 +366,22 @@
                 <div class="glass-card rounded-2xl p-5 border-l-4 border-green-500">
                     <div class="flex justify-between items-start mb-2"><h3 class="font-bold text-gray-800 dark:text-white text-lg">WaySim 日本 eSIM</h3><span class="bg-green-500 text-white text-[10px] px-2 py-1 rounded">Softbank</span></div>
                     <div class="bg-white p-2 rounded-lg inline-block w-32 h-32 mx-auto block mb-4 relative overflow-hidden"><img src="qrcode.png" class="w-full h-full object-contain absolute top-0 left-0" alt="QR" onerror="this.style.display='none'"><div class="w-full h-full flex items-center justify-center text-slate-900 text-xs text-center"><i class="fas fa-qrcode text-2xl mb-1 block"></i>QR Code</div></div>
+                    <div class="text-xs text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-900/50 p-3 rounded-lg space-y-1 font-mono">
+                        <div>ICCID: 89812003919122484447</div>
+                        <div class="break-all">啟用碼: CCCD0A2683AF41D4B0960417137A9F90</div>
+                    </div>
                 </div>
                 <div class="glass-card rounded-2xl p-5 border-l-4 border-blue-500">
                     <div class="flex justify-between items-start mb-4"><h3 class="font-bold text-gray-800 dark:text-white text-lg">安達產物保險</h3><a href="tel:+886223266758" class="bg-red-100 dark:bg-red-500/20 text-red-500 dark:text-red-400 border border-red-200 dark:border-red-500/50 text-xs px-3 py-1 rounded-full"><i class="fas fa-phone mr-1"></i>急難救助</a></div>
-                    <div class="text-xs text-gray-600 dark:text-slate-300 space-y-1 font-mono"><div>保單：EWRTWAA0686101</div><div>期間：1/16 03:00 ~ 1/21 03:00</div></div>
+                    <div class="text-xs text-gray-600 dark:text-slate-300 space-y-1 font-mono bg-gray-100 dark:bg-slate-900/50 p-3 rounded-lg">
+                        <div>保單號碼：EWRTWAA0686101</div>
+                        <div>保險期間：2026/01/16 03:00 ~ 2026/01/21 03:00</div>
+                        <div class="border-t border-gray-300 dark:border-slate-700 pt-2 mt-2">
+                            <div class="flex justify-between"><span>意外身故</span><span>NT$500萬</span></div>
+                            <div class="flex justify-between"><span>傷害醫療</span><span>NT$30萬</span></div>
+                            <div class="flex justify-between"><span>海外突發疾病</span><span>NT$30萬</span></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
@@ -418,6 +394,46 @@
                 </button>
             </div>
         </nav>
+
+        <input type="file" ref="fileInput" class="hidden" accept="image/*" @change="handleFileChange">
+
+        <!-- Expense Modal -->
+        <div v-if="showExpenseModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+            <div class="glass-card w-full max-w-sm p-6 rounded-2xl border border-gray-200 dark:border-slate-700 bg-white/95 dark:bg-slate-800/95 shadow-2xl transform transition-all scale-100">
+                <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4">{{ editingExpenseIndex !== null ? '編輯記帳' : '新增記帳' }}</h3>
+                <div class="space-y-4">
+                    <input type="text" v-model="newExpenseName" @focus="selectText($event)" class="w-full bg-gray-100 dark:bg-slate-900 border rounded-lg p-3 text-gray-800 dark:text-white" placeholder="項目名稱">
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="col-span-2"><input type="number" v-model="newExpenseAmount" inputmode="numeric" class="w-full bg-gray-100 dark:bg-slate-900 border rounded-lg p-3 text-gray-800 dark:text-white" placeholder="金額"></div>
+                        <div><select v-model="newExpenseCurrency" class="w-full bg-gray-100 dark:bg-slate-900 border rounded-lg p-3 text-gray-800 dark:text-white"><option value="JPY">JPY</option><option value="TWD">TWD</option></select></div>
+                    </div>
+                    <input type="date" v-model="newExpenseDate" class="w-full bg-gray-100 dark:bg-slate-900 border rounded-lg p-3 text-gray-800 dark:text-white">
+                    <select v-model="newExpenseCategory" class="w-full bg-gray-100 dark:bg-slate-900 border rounded-lg p-3 text-gray-800 dark:text-white">
+                        <option value="food">餐飲</option><option value="transport">交通</option><option value="shop">購物</option><option value="hotel">住宿</option><option value="sight">娛樂</option><option value="other">其他</option>
+                    </select>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button @click="closeExpenseModal" class="flex-1 py-3 rounded-xl bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-slate-300 font-bold text-sm">取消</button>
+                    <button @click="saveExpense" class="flex-1 py-3 rounded-xl bg-blue-600 dark:bg-neon-cyan text-white dark:text-slate-900 font-bold text-sm shadow-lg">儲存</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prep Modal -->
+        <div v-if="showPrepModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+            <div class="glass-card w-full max-w-sm p-6 rounded-2xl border border-gray-200 dark:border-slate-700 bg-white/95 dark:bg-slate-800/95 shadow-2xl">
+                 <h3 class="text-lg font-bold text-gray-800 dark:text-white mb-4">新增物品</h3>
+                 <input type="text" v-model="newPrepName" @focus="selectText($event)" class="w-full bg-gray-100 dark:bg-slate-900 border rounded-lg p-3 mb-4 text-gray-800 dark:text-white" placeholder="物品名稱">
+                 <div v-if="activePrepType === 'packing'" class="grid grid-cols-5 gap-2 mb-4">
+                     <div v-for="icon in prepIcons" :key="icon" @click="newPrepIcon = icon" class="w-10 h-10 rounded flex items-center justify-center cursor-pointer border" :class="newPrepIcon === icon ? 'bg-blue-100 dark:bg-neon-cyan text-blue-600 dark:text-slate-900 border-blue-500' : 'bg-gray-50 dark:bg-slate-900 text-gray-400 border-transparent'"><i :class="['fas', icon]"></i></div>
+                 </div>
+                 <div class="flex gap-3">
+                    <button @click="showPrepModal = false" class="flex-1 py-2 rounded-lg bg-gray-200 dark:bg-slate-700 text-gray-600 dark:text-slate-300 text-sm">取消</button>
+                    <button @click="savePrepItem" class="flex-1 py-2 rounded-lg bg-blue-600 dark:bg-neon-cyan text-white dark:text-slate-900 text-sm font-bold">新增</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -430,12 +446,27 @@
                 const isDark = ref(true);
                 const weatherData = ref([]);
                 const currentTime = ref('');
+                
+                // Modal States
+                const showExpenseModal = ref(false);
+                const editingExpenseIndex = ref(null);
+                const newExpenseName = ref('');
+                const newExpenseAmount = ref('');
+                const newExpenseCurrency = ref('JPY');
+                const newExpenseCategory = ref('food');
+                const newExpenseDate = ref('');
+                const currencyMode = ref('JPY');
+                const exchangeRate = 0.22;
+                
+                const showPrepModal = ref(false);
+                const activePrepType = ref('');
+                const newPrepName = ref('');
+                const newPrepIcon = ref('fa-box');
+                
+                const fileInput = ref(null);
+                const uploadTarget = ref(null);
 
-                setInterval(() => {
-                    const now = new Date();
-                    currentTime.value = now.toLocaleTimeString('zh-TW', { hour12: false });
-                }, 1000);
-
+                const prepIcons = ['fa-box', 'fa-tshirt', 'fa-passport', 'fa-pills', 'fa-camera', 'fa-plug', 'fa-snowflake', 'fa-id-card', 'fa-mobile-alt', 'fa-money-bill'];
                 const tabs = [
                     { id: 'prep', icon: 'fa-clipboard-check', label: '準備' },
                     { id: 'itinerary', icon: 'fa-map-marked-alt', label: '行程' },
@@ -444,6 +475,7 @@
                     { id: 'wallet', icon: 'fa-ticket-alt', label: '憑證' }
                 ];
 
+                // Initial Data
                 const defaultPrepData = {
                     critical: [
                         { name: 'Visit Japan Web 登錄', checked: false, isEditing: false },
@@ -460,90 +492,66 @@
                         { name: '常備藥品', icon: 'fa-pills', checked: false, isEditing: false }
                     ]
                 };
-                const prepData = ref(defaultPrepData);
 
                 const defaultSouvenirList = {
                     '甜點零食': [
-                        { name: '六花亭 蘭姆葡萄夾心', desc: '經典必買，冰過更好吃', shop: '六花亭', checked: false, isEditing: false },
-                        { name: '北菓樓 夢不思議泡芙', desc: '亦可買"開拓おかき"', shop: '北菓樓', checked: false, isEditing: false },
-                        { name: 'LeTAO 雙層起司蛋糕', desc: '機場買保冷袋裝', shop: 'LeTAO', checked: false, isEditing: false },
-                        { name: 'Un Delice 布丁大福', desc: '老辣妹隱藏推薦，軟Q好吃', shop: 'Un Delice', checked: false, isEditing: false },
-                         { name: 'Kinotoya 起司塔', desc: '新千歲機場排隊名店', shop: 'Kinotoya', checked: false, isEditing: false }
+                        { name: '六花亭 蘭姆葡萄夾心', desc: '經典必買，冰過更好吃', shop: '六花亭', checked: false, isEditing: false, image: null },
+                        { name: '北菓樓 夢不思議泡芙', desc: '亦可買"開拓おかき"', shop: '北菓樓', checked: false, isEditing: false, image: null },
+                        { name: 'LeTAO 雙層起司蛋糕', desc: '機場買保冷袋裝', shop: 'LeTAO', checked: false, isEditing: false, image: null },
+                        { name: 'Un Delice 布丁大福', desc: '老辣妹隱藏推薦，軟Q好吃', shop: 'Un Delice', checked: false, isEditing: false, image: null },
+                         { name: 'Kinotoya 起司塔', desc: '新千歲機場排隊名店', shop: 'Kinotoya', checked: false, isEditing: false, image: null }
                     ],
                     '物品/藥妝': [
-                        { name: '小樽音樂盒', desc: '挑一首喜歡的歌', shop: '音樂盒堂', checked: false, isEditing: false },
-                        { name: '北一硝子 玻璃製品', desc: '醬油瓶不漏油很有名', shop: '北一硝子', checked: false, isEditing: false },
-                        { name: '北海道馬油', desc: '保濕神物', shop: '藥妝店', checked: false, isEditing: false }
+                        { name: '小樽音樂盒', desc: '挑一首喜歡的歌', shop: '音樂盒堂', checked: false, isEditing: false, image: null },
+                        { name: '北一硝子 玻璃製品', desc: '醬油瓶不漏油很有名', shop: '北一硝子', checked: false, isEditing: false, image: null },
+                        { name: '北海道馬油', desc: '保濕神物', shop: '藥妝店', checked: false, isEditing: false, image: null }
                     ]
                 };
-                const souvenirList = ref(defaultSouvenirList);
 
-                const expenses = ref([
-                    { name: '機票預付', amount: 18000, category: 'transport' },
-                    { name: 'KOKO Hotel', amount: 13474, category: 'hotel' },
-                    { name: 'KKday一日遊', amount: 3300, category: 'sight' }
-                ]);
-                const expenseCategories = { food: { label: '餐飲', icon: 'fa-utensils', color: '#fbbf24' }, transport: { label: '交通', icon: 'fa-bus', color: '#3b82f6' }, shop: { label: '購物', icon: 'fa-shopping-bag', color: '#ec4899' }, hotel: { label: '住宿', icon: 'fa-bed', color: '#6366f1' }, sight: { label: '娛樂', icon: 'fa-camera', color: '#a78bfa' }, other: { label: '其他', icon: 'fa-receipt', color: '#9ca3af' } };
-                const expenseStats = computed(() => { const stats = {}; let total = 0; expenses.value.forEach(ex => { const cat = ex.category || 'other'; if (!stats[cat]) stats[cat] = 0; stats[cat] += ex.amount; total += ex.amount; }); return Object.keys(stats).map(key => ({ category: key, amount: stats[key], percent: total === 0 ? 0 : (stats[key] / total) * 100, color: expenseCategories[key]?.color || '#9ca3af' })); });
-                const totalExpense = computed(() => expenses.value.reduce((sum, item) => sum + item.amount, 0));
-
-                const daysData = [
+                const defaultDays = [
                     { date: '2026-01-16', shortDate: '1/16 (五)', location: '札幌', lat: 43.0618, lon: 141.3545, tenkiUrl: 'https://tenki.jp/forecast/1/2/1400/1100/', events: [
-                        { time: '05:50', type: 'transport', title: '桃園起飛 (T2)', desc: 'TPE -> CTS。請務必於 03:20 前抵達華航櫃台。', location: 'Taoyuan International Airport Terminal 2', isEditing: false },
-                        { time: '10:30', type: 'transport', title: '抵達新千歲', desc: '出關後直接前往國內線航廈覓食。', location: 'New Chitose Airport', isEditing: false },
-                         { time: '10:50', type: 'food', title: '首站：Kinotoya 霜淇淋', desc: '新千歲機場必吃 No.1！濃郁到像喝鮮奶油。位於國內線航廈2F。', tag: '必吃', location: 'Kinotoya New Chitose Airport', isEditing: false, backups: [{name: 'LeTAO 霜淇淋', rating: '3.6'}, {name: '北菓樓 泡芙', rating: '3.7'}] },
-                         { time: '12:00', type: 'food', title: '午餐：Seicomart', desc: '北海道最強超商！必吃「Hot Chef」現做熱食（豬排丼、大飯糰）。', tag: '必吃', location: 'Seicomart', isEditing: false, backups: [{name: '一幻拉麵', rating: '3.58'}, {name: 'Drive-in Ika (豚丼)', rating: '3.5'}] },
-                        { time: '14:30', type: 'transport', title: '前往札幌 / 飯店Check-in', desc: '搭乘 JR 快速機場線 (Rapid Airport) 到札幌站。\n入住 KOKO Hotel。', location: 'KOKO HOTEL Sapporo Ekimae', tag: 'Check-in', isEditing: false },
-                        { time: '15:30', type: 'sight', title: '北海道大學散策', desc: '老辣妹推薦：北12條站步行過去。必去綜合博物館（摸化石）。', location: 'Hokkaido University', isEditing: false, 
-                           powerSpot: { name: 'Hokudai Marche', desc: '北大人氣咖啡，必吃牛奶布丁&發酵奶油蛋糕' }, 
-                           photo: { advice: '拍攝校園雪景，建議增加+0.7EV。白雪與紅磚建築對比很美。', sim: 'Classic Chrome', lens: '23mm (等效35mm)', params: 'F5.6 / 1/250s / ISO 400' } },
-                        { time: '18:00', type: 'food', title: '晚餐：湯咖哩 Suage+', desc: '老辣妹影片推薦 Medicine Man (較遠)。改推市區名店 Suage+，方便且同樣美味 (串燒湯咖哩)。', tag: '必吃', location: 'Soup Curry Suage+', tabelog: { rating: 3.75, url: 'https://tabelog.com/hokkaido/A0101/A010103/1006004/' }, backups: [{ name: 'GARAKU (排隊名店)', rating: '3.72' }, { name: 'Samurai (蔬菜多)', rating: '3.65' }], photo: { advice: '湯咖哩色彩豐富，用 Velvia 增強蔬菜的鮮豔度。', sim: 'Velvia (鮮豔)', lens: '35mm', params: 'F4.0 / 1/60s / ISO 800' } },
-                         { time: '20:00', type: 'food', title: '夜聖代：Purple Dahlia', desc: '札幌特有文化：飯後吃聖代。推薦：Purple Dahlia (老辣妹去的那家，復古風)。', location: 'Purple Dahlia', isEditing: false, tabelog: { rating: 3.55, url: 'https://tabelog.com/hokkaido/A0101/A010103/1066898/' }, backups: [{ name: 'Parfaiteria PaL', rating: '3.6' }, { name: 'Sato', rating: '3.62' }] }
+                        { time: '05:50', type: 'transport', title: '桃園起飛 (T2)', desc: 'TPE -> CTS。', location: 'Taoyuan Airport T2', isEditing: false, image: null },
+                        { time: '10:30', type: 'transport', title: '抵達新千歲', desc: '出關。', location: 'New Chitose Airport', isEditing: false },
+                         { time: '10:50', type: 'food', title: '首站：Kinotoya 霜淇淋', desc: '機場必吃 No.1！', tag: '必吃', location: 'Kinotoya Airport', isEditing: false, backups: [{name: 'LeTAO', rating: '3.6'}] },
+                         { time: '12:00', type: 'food', title: '午餐：Seicomart', desc: '必吃「Hot Chef」熱食。', tag: '必吃', location: 'Seicomart', isEditing: false },
+                        { time: '14:30', type: 'transport', title: '飯店Check-in', desc: '入住 KOKO Hotel。', location: 'KOKO HOTEL', tag: 'Check-in', isEditing: false },
+                        { time: '15:30', type: 'sight', title: '北海道大學散策', desc: '必去綜合博物館。', location: 'Hokkaido University', isEditing: false, photo: { advice: '建議增加+0.7EV。', sim: 'Classic Chrome', lens: '23mm', params: 'F5.6 / ISO 400' } },
+                        { time: '18:00', type: 'food', title: '晚餐：湯咖哩 Suage+', desc: '串燒湯咖哩。', tag: '必吃', location: 'Soup Curry Suage+', tabelog: { rating: 3.75, url: 'https://tabelog.com/' }, photo: { advice: '色彩豐富用 Velvia。', sim: 'Velvia', lens: '35mm', params: 'F4.0' }},
+                         { time: '20:00', type: 'food', title: '夜聖代：Purple Dahlia', desc: '復古風聖代。', location: 'Purple Dahlia', isEditing: false }
                     ]},
                     { date: '2026-01-17', shortDate: '1/17 (六)', location: '美瑛/旭川', lat: 43.5833, lon: 142.4667, tenkiUrl: 'https://tenki.jp/forecast/1/2/1400/1458/', events: [
-                        { time: '07:30', type: 'food', title: '早餐：超商/飯糰', desc: '車站買飯糰或三明治在車上吃。推薦 Seicomart 明太子飯糰。', location: 'Sapporo Station', isEditing: false, backups: [{name: 'Sandria 三明治 (販賣機)', rating: '3.5'}, {name: 'Donguri 麵包', rating: '3.6'}] },
-                        { time: '07:40', type: 'sight', title: '一日遊集合 (KKday)', desc: '札幌站北口集合。前往旭山動物園與美瑛。', tag: 'Day Tour', location: 'Sapporo Station North Exit', isEditing: false },
-                        { time: '10:30', type: 'sight', title: '旭山動物園 (企鵝散步)', desc: '必看！11:00 企鵝散步，建議提早30分鐘卡位。必去：海豹館圓柱。', location: 'Asahiyama Zoo', isEditing: false, 
-                           photo: { advice: '企鵝移動速度比想像快，快門速度要夠 (1/500s以上)。', sim: 'Astia', lens: '50mm', params: 'F5.6 / 1/500s / ISO 400' } },
-                         { time: '12:30', type: 'food', title: '午餐：動物園/四季彩之丘', desc: '行程若有停靠休息站可買熱食，或在園區內簡單吃咖哩飯。', location: 'Asahiyama Zoo', isEditing: false, backups: [{name: 'Mogmog Terrace (園內)', rating: '3.2'}, {name: 'Asahikawa Ramen Village', rating: '3.4'}] },
-                        { time: '13:30', type: 'sight', title: '四季彩之丘 (雪地摩托車 & 羊駝)', desc: '恢復雪地摩托車體驗！(自費)。另外這裡真的有羊駝牧場，冬天也能看喔！', location: 'Shikisai-no-Oka', isEditing: false,
-                           photo: { advice: '雪地大景反光強，曝光補償務必 +1.3EV ~ +2.0EV。', sim: 'Classic Chrome', lens: '16mm', params: 'F8.0 / +1.7EV' } },
-                        { time: '15:00', type: 'sight', title: 'Ken & Mary 之樹', desc: '著名廣告場景，白茫茫一片中的孤獨之樹。', location: 'Ken & Mary Tree', isEditing: false },
-                        { time: '16:00', type: 'sight', title: '森林精靈露臺', desc: '點燈後像童話世界的小木屋。', location: 'Ningle Terrace', isEditing: false, powerSpot: { name: 'Chu Chu House', desc: '位於露臺內，必喝「烤牛奶」暖身' }, 
-                           photo: { advice: '黃光與藍調時刻的對比。使用 Nostalgic Neg. 增加溫暖感。', sim: 'Nostalgic Neg.', lens: '23mm', params: 'F2.8 / ISO 1600' } },
-                        { time: '19:30', type: 'food', title: '晚餐：成吉思汗烤肉', desc: '推薦：達摩 Daruma (4.4店)。肉質鮮美，炭火香氣足，開到很晚。', location: 'Daruma 4.4', tabelog: { rating: 3.75, url: 'https://tabelog.com/hokkaido/A0101/A010103/1000007/' }, backups: [{name: 'Sapporo Beer Garden', rating: '3.6'}, {name: 'Itadakimasu (Farm to Table)', rating: '3.7'}] }
+                        { time: '07:40', type: 'sight', title: '一日遊集合 (KKday)', desc: '札幌站北口集合。', tag: 'Day Tour', location: 'Sapporo Station North', isEditing: false },
+                        { time: '10:30', type: 'sight', title: '旭山動物園', desc: '企鵝散步必看！', location: 'Asahiyama Zoo', isEditing: false, photo: { advice: '快門 1/500s 以上。', sim: 'Astia', lens: '50mm', params: '1/500s' } },
+                        { time: '13:30', type: 'sight', title: '四季彩之丘', desc: '雪地摩托車 & 羊駝。', location: 'Shikisai-no-Oka', isEditing: false, photo: { advice: '曝光 +1.7EV。', sim: 'Classic Chrome', lens: '16mm', params: '+1.7EV' } },
+                        { time: '16:00', type: 'sight', title: '森林精靈露臺', desc: '點燈後像童話世界。', location: 'Ningle Terrace', isEditing: false, photo: { advice: '藍調時刻用 Nostalgic Neg.', sim: 'Nostalgic Neg.', lens: '23mm', params: 'ISO 1600' } },
+                        { time: '19:30', type: 'food', title: '晚餐：成吉思汗烤肉', desc: '達摩 Daruma 4.4。', location: 'Daruma 4.4', tabelog: { rating: 3.75, url: 'https://tabelog.com/' } }
                     ]},
                     { date: '2026-01-18', shortDate: '1/18 (日)', location: '小樽', lat: 43.1907, lon: 140.9947, tenkiUrl: 'https://tenki.jp/forecast/1/2/1600/1203/', events: [
-                        { time: '09:00', type: 'transport', title: 'JR 前往小樽', desc: '建議坐右側看海景。', location: 'Otaru Station', isEditing: false },
-                         { time: '09:40', type: 'food', title: '早餐：三角市場', desc: '瀧波食堂吃海鮮丼。必點：任選三色丼、帝王蟹腳 (老辣妹說蟹腳肉超多)。', tag: '必吃', location: 'Sankaku Market', tabelog: { rating: 3.68, url: 'https://tabelog.com/hokkaido/A0106/A010601/1003666/' }, backups: [{name: 'Takeda (武田鮮魚店)', rating: '3.55'}, {name: 'Kawashima', rating: '3.5'}] },
-                        { time: '11:00', type: 'sight', title: '住吉神社', desc: '老辣妹大推！連綿的紅色鳥居在雪地裡超美。可求「飛魚御神籤」。', location: 'Sumiyoshi Shrine Otaru', isEditing: false, photo: { advice: '紅色鳥居與白雪是絕配。用 Classic Chrome 拍出電影感。', sim: 'Classic Chrome', lens: '23mm', params: 'F5.6 / 1/250s / +1.0EV' }},
-                        { time: '13:00', type: 'food', title: '午餐/點心：甜點巡禮', desc: '1. 北菓樓 (夢不思議泡芙)\n2. 六花亭 (萊姆葡萄餅乾)\n3. Un Delice (布丁大福 - 老辣妹隱藏推薦)', tag: '必吃', location: 'Sakaimachi Hondori Street', isEditing: false, backups: [{name: 'LeTAO Main Store (蛋糕)', rating: '3.6'}, {name: 'Kamaei (魚板)', rating: '3.5'}] },
-                         { time: '15:00', type: 'sight', title: '小樽運河 & 藝術村', desc: '逛逛花窗玻璃美術館 (老辣妹推薦)。', location: 'Otaru Canal', isEditing: false, 
-                           powerSpot: { name: '北一硝子三號館 (北一廳)', desc: '167盞煤油燈，復古幽暗必拍，適合休息' },
-                           photo: { advice: '天剛黑時(Blue Hour)拍攝運河燈光。手持夜景請開大光圈。', sim: 'Provia', lens: '16mm', params: 'F4.0 / 1/30s / ISO 1600' } },
-                        { time: '18:00', type: 'food', title: '晚餐：政壽司', desc: '體驗小樽板前壽司。', location: 'Otaru Masazushi Honten', tabelog: { rating: 3.65, url: 'https://tabelog.com/hokkaido/A0106/A010601/1000288/' }, backups: [{name: 'Naruto (炸半雞)', rating: '3.58'}, {name: 'Yabuhan Soba', rating: '3.6'}] },
-                        { time: '20:00', type: 'transport', title: '返回札幌', desc: '搭 JR 回飯店。', location: 'Sapporo Station', isEditing: false }
+                        { time: '09:00', type: 'transport', title: 'JR 前往小樽', desc: '坐右側看海。', location: 'Otaru Station', isEditing: false },
+                         { time: '09:40', type: 'food', title: '早餐：三角市場', desc: '瀧波食堂海鮮丼。', tag: '必吃', location: 'Sankaku Market', tabelog: { rating: 3.68, url: 'https://tabelog.com/' } },
+                        { time: '11:00', type: 'sight', title: '住吉神社', desc: '紅色鳥居超美。', location: 'Sumiyoshi Shrine', isEditing: false, photo: { advice: '紅色鳥居與白雪。', sim: 'Classic Chrome', lens: '23mm', params: '+1.0EV' }},
+                         { time: '15:00', type: 'sight', title: '小樽運河', desc: '逛藝術村、花窗玻璃。', location: 'Otaru Canal', isEditing: false, photo: { advice: 'Blue Hour 夜景。', sim: 'Provia', lens: '16mm', params: 'ISO 1600' } },
+                        { time: '18:00', type: 'food', title: '晚餐：政壽司', desc: '板前壽司體驗。', location: 'Otaru Masazushi', tabelog: { rating: 3.65, url: 'https://tabelog.com/' } }
                     ]},
                     { date: '2026-01-19', shortDate: '1/19 (一)', location: '札幌市區', lat: 43.0618, lon: 141.3545, tenkiUrl: 'https://tenki.jp/forecast/1/2/1400/1100/', events: [
-                        { time: '09:00', type: 'food', title: '早餐：Saera 帝王蟹三明治', desc: '必吃！地下街的排隊名店，水果三明治也很強。', tag: '必吃', location: 'Saera', tabelog: { rating: 3.72, url: 'https://tabelog.com/hokkaido/A0101/A010102/1000026/' }, backups: [{name: 'Donguri Odori (麵包)', rating: '3.6'}, {name: 'Baristart Coffee', rating: '3.5'}] },
-                        { time: '10:30', type: 'sight', title: '北海道神宮', desc: '必去！雪中的神宮非常莊嚴。可以買Hello Kitty御守。', location: 'Hokkaido Jingu', isEditing: false, powerSpot: { name: '六花亭 神宮茶屋店', desc: '必吃：判官餅 (現烤麻糬)，熱熱吃超讚' }, photo: { advice: '拍神宮大門，Classic Chrome。', sim: 'Classic Chrome', lens: '16mm', params: 'F8.0 / 1/250s' }},
-                        { time: '13:00', type: 'food', title: '午餐：根室花丸', desc: 'Stellar Place店，迴轉壽司。若排太久可改去 ESTA 拉麵共和國。', location: 'Nemuro Hanamaru', tabelog: { rating: 3.70, url: 'https://tabelog.com/hokkaido/A0101/A010101/1001102/' }, backups: [{name: 'Toriton', rating: '3.65'}, {name: 'Katsu Icckon (豬排)', rating: '3.6'}] },
-                        { time: '15:00', type: 'sight', title: '頭大佛 (真駒內滝野靈園)', desc: '老辣妹影片震撼景點，安藤忠雄設計。需搭地鐵到真駒內站轉巴士。', location: 'Hill of the Buddha', isEditing: false, photo: { advice: '充滿幾何與光影的建築。適合用黑白模式 (Acros) 表現莊嚴感。', sim: 'Acros', lens: '16mm', params: 'F8.0 / ISO 200' }},
-                        { time: '17:30', type: 'sight', title: '藻岩山夜景', desc: '日本新三大夜景。搭纜車上山，注意保暖！', location: 'Mount Moiwa Ropeway', isEditing: false },
-                        { time: '20:00', type: 'food', title: '晚餐：麵屋雪風', desc: '老辣妹推薦的濃郁味噌拉麵，宵夜首選。位於薄野。', location: 'Menya Yukikaze', tabelog: { rating: 3.72, url: 'https://tabelog.com/hokkaido/A0101/A010103/1002793/' }, 
-                          powerSpot: { name: 'Morihico. (森彥)', desc: '古民家改建傳奇咖啡，Nostalgic Neg.絕配' }, backups: [{name: 'Ebisoba Ichigen', rating: '3.6'}, {name: 'Shingen (信玄)', rating: '3.65'}] }
+                        { time: '09:00', type: 'food', title: '早餐：Saera', desc: '帝王蟹三明治。', tag: '必吃', location: 'Saera', tabelog: { rating: 3.72, url: 'https://tabelog.com/' } },
+                        { time: '10:30', type: 'sight', title: '北海道神宮', desc: '買Hello Kitty御守、吃判官餅。', location: 'Hokkaido Jingu', isEditing: false, photo: { advice: '拍神宮大門。', sim: 'Classic Chrome', lens: '16mm', params: 'F8.0' }},
+                        { time: '15:00', type: 'sight', title: '頭大佛', desc: '安藤忠雄設計。', location: 'Hill of the Buddha', isEditing: false, photo: { advice: '幾何光影用黑白。', sim: 'Acros', lens: '16mm', params: 'ISO 200' }},
+                        { time: '17:30', type: 'sight', title: '藻岩山夜景', desc: '搭纜車上山。', location: 'Mount Moiwa', isEditing: false },
+                        { time: '20:00', type: 'food', title: '晚餐：麵屋雪風', desc: '濃郁味噌拉麵。', location: 'Menya Yukikaze', tabelog: { rating: 3.72, url: 'https://tabelog.com/' } }
                     ]},
                     { date: '2026-01-20', shortDate: '1/20 (二)', location: '新千歲', lat: 42.793, lon: 141.678, tenkiUrl: 'https://tenki.jp/forecast/1/2/1400/1224/', events: [
-                        { time: '07:30', type: 'food', title: '早餐：飯店/超商', desc: '簡單吃，留肚子去機場。', location: 'KOKO Hotel', isEditing: false, backups: [{name: 'Nakajima Park Seicomart', rating: '3.0'}] },
-                        { time: '08:00', type: 'transport', title: '前往機場 (JR)', desc: '搭乘 JR 機場快線。', location: 'New Chitose Airport', isEditing: false },
-                        { time: '09:00', type: 'shop', title: '機場最後衝刺', desc: 'Kinotoya 起司塔、Royce 巧克力、北菓樓泡芙、LeTAO。國內線商店街非常好逛。', location: 'New Chitose Airport Domestic Terminal', isEditing: false },
-                        { time: '11:00', type: 'food', title: '午餐：機場美食', desc: '若還有時間，可補吃沒吃到的拉麵或豬肉丼。', location: 'New Chitose Airport', isEditing: false, backups: [{name: 'Matsuo Genghis Khan', rating: '3.5'}, {name: 'Drive-in Ika', rating: '3.5'}] },
-                        { time: '11:30', type: 'transport', title: '飛機起飛 (國際線)', desc: '搭乘華航 CI2131 返回溫暖的家。', location: 'New Chitose Airport International Terminal', isEditing: false }
+                        { time: '09:00', type: 'shop', title: '機場最後衝刺', desc: '買 Kinotoya, Royce。', location: 'New Chitose Airport', isEditing: false },
+                        { time: '11:30', type: 'transport', title: '飛機起飛', desc: 'CI2131 回家。', location: 'New Chitose Airport', isEditing: false }
                     ]}
                 ];
-                
-                const days = ref(daysData);
 
+                const prepData = ref(defaultPrepData);
+                const souvenirList = ref(defaultSouvenirList);
+                const expenses = ref([]);
+                const days = ref(defaultDays);
+
+                // --- Methods ---
                 const toggleDarkMode = () => { isDark.value = !isDark.value; if (isDark.value) document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); };
                 const changeDay = (delta) => { const newIndex = activeDayIndex.value + delta; if (newIndex >= 0 && newIndex < days.value.length) { activeDayIndex.value = newIndex; const main = document.getElementById('main-scroll'); if(main) main.scrollTo({ top: 0, behavior: 'smooth' }); } };
                 const getCategoryColor = (type) => { const colors = { transport: 'bg-blue-500', food: 'bg-orange-400', sight: 'bg-emerald-500', hotel: 'bg-indigo-500', shop: 'bg-pink-500' }; return colors[type] || 'bg-gray-400'; };
@@ -552,34 +560,122 @@
                 const openMap = (loc) => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc)}`, '_blank');
                 const openLink = (link) => { if(link) window.open(link, '_blank'); };
                 const openTenki = (url) => window.open(url, '_blank');
-                const getExpenseLabel = (cat) => expenseCategories[cat]?.label || '其他';
-                const addExpense = () => { const name = prompt('項目名稱：'); const amount = parseInt(prompt('金額 (數字)：') || 0); if(name && amount) expenses.value.push({name, amount, category: 'other'}); };
-                const addItem = (listType) => { if (listType === 'critical') prepData.value.critical.push({ name: '新項目', checked: false, isEditing: true }); else if (listType === 'packing') prepData.value.packing.push({ name: '新物品', icon: 'fa-box', checked: false, isEditing: true }); };
-                const deleteItem = (listType, index) => { if (confirm('確定刪除？')) { if (listType === 'critical') prepData.value.critical.splice(index, 1); else prepData.value.packing.splice(index, 1); } };
+                const getExpenseLabel = (cat) => ({ food: '餐飲', transport: '交通', shop: '購物', hotel: '住宿', sight: '娛樂', other: '其他' }[cat] || '其他');
+                
                 const addSouvenir = (catName) => { souvenirList.value[catName].unshift({ name: '新伴手禮', desc: '描述', shop: '', checked: false, isEditing: true }); };
                 const deleteSouvenir = (catName, index) => { if (confirm('確定刪除？')) souvenirList.value[catName].splice(index, 1); };
+                const openPrepModal = (type) => { activePrepType.value = type; newPrepName.value = ''; showPrepModal.value = true; };
+                const savePrepItem = () => {
+                    if (activePrepType.value === 'critical') prepData.value.critical.push({ name: newPrepName.value, checked: false, isEditing: false });
+                    else prepData.value.packing.push({ name: newPrepName.value, icon: newPrepIcon.value, checked: false, isEditing: false });
+                    showPrepModal.value = false;
+                };
+                const deleteItem = (listType, index) => { if (confirm('確定刪除？')) { if (listType === 'critical') prepData.value.critical.splice(index, 1); else prepData.value.packing.splice(index, 1); } };
+                const addItem = (type) => openPrepModal(type); 
+
+                const openExpenseModal = (index = null) => {
+                    if (index !== null) {
+                        const target = expenses.value[index];
+                        newExpenseName.value = target.name;
+                        newExpenseAmount.value = target.amount;
+                        newExpenseCurrency.value = target.currency;
+                        newExpenseCategory.value = target.category;
+                        newExpenseDate.value = target.date || new Date().toISOString().split('T')[0];
+                        editingExpenseIndex.value = index;
+                    } else {
+                        newExpenseName.value = '';
+                        newExpenseAmount.value = '';
+                        newExpenseCurrency.value = 'JPY';
+                        newExpenseCategory.value = 'food';
+                        newExpenseDate.value = new Date().toISOString().split('T')[0];
+                        editingExpenseIndex.value = null;
+                    }
+                    showExpenseModal.value = true;
+                };
+                const closeExpenseModal = () => { showExpenseModal.value = false; };
+                const saveExpense = () => {
+                    if (newExpenseName.value && newExpenseAmount.value) {
+                        const data = { name: newExpenseName.value, amount: parseInt(newExpenseAmount.value), currency: newExpenseCurrency.value, category: newExpenseCategory.value, date: newExpenseDate.value };
+                        if (editingExpenseIndex.value !== null) expenses.value[editingExpenseIndex.value] = data;
+                        else expenses.value.push(data);
+                        closeExpenseModal();
+                    }
+                };
+                const addExpense = () => openExpenseModal(null);
+                const toggleCurrency = () => { currencyMode.value = currencyMode.value === 'JPY' ? 'TWD' : 'JPY'; };
+                const formatCurrency = (val) => `${currencyMode.value} ${Math.round(val).toLocaleString()}`;
+                
+                const addEvent = (dayIdx) => { 
+                    if(days.value[dayIdx]) {
+                        days.value[dayIdx].events.push({ time: '00:00', type: 'sight', title: '新行程', desc: '點擊筆編輯', location: '', isEditing: true, image: null });
+                    }
+                };
+                const deleteEvent = (dayIdx, eventIdx) => { if (confirm('確定刪除此行程？')) days.value[dayIdx].events.splice(eventIdx, 1); };
+                const selectText = (event) => event.target.select();
+                
+                const triggerImageUpload = (type, p1, p2) => { uploadTarget.value = { type, p1, p2 }; fileInput.value.click(); };
+                const handleFileChange = (e) => {
+                    const file = e.target.files[0]; if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                            const MAX_WIDTH = 800; let width = img.width; let height = img.height;
+                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                            canvas.width = width; canvas.height = height;
+                            ctx.drawImage(img, 0, 0, width, height);
+                            const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                            if (uploadTarget.value.type === 'event') days.value[uploadTarget.value.p1].events[uploadTarget.value.p2].image = dataUrl;
+                            else if (uploadTarget.value.type === 'souvenir') souvenirList.value[uploadTarget.value.p1][uploadTarget.value.p2].image = dataUrl;
+                            fileInput.value.value = '';
+                        }; img.src = event.target.result;
+                    }; reader.readAsDataURL(file);
+                };
+
+                const expenseStats = computed(() => {
+                    const normalizedExpenses = expenses.value.map(ex => {
+                        const cur = ex.currency || 'TWD';
+                        let amount = ex.amount;
+                        if (cur === 'TWD' && currencyMode.value === 'JPY') amount = ex.amount / exchangeRate;
+                        if (cur === 'JPY' && currencyMode.value === 'TWD') amount = ex.amount * exchangeRate;
+                        return { ...ex, normAmount: amount };
+                    });
+                    const stats = {}; let total = 0;
+                    normalizedExpenses.forEach(ex => { 
+                        const cat = ex.category || 'other'; 
+                        if (!stats[cat]) stats[cat] = 0; 
+                        stats[cat] += ex.normAmount; 
+                        total += ex.normAmount; 
+                    });
+                    const expenseCategories = { food: { color: '#fbbf24' }, transport: { color: '#3b82f6' }, shop: { color: '#ec4899' }, hotel: { color: '#6366f1' }, sight: { color: '#a78bfa' }, other: { color: '#9ca3af' } };
+                    return Object.keys(stats).map(key => ({ category: key, amount: stats[key], percent: total === 0 ? 0 : (stats[key] / total) * 100, color: expenseCategories[key]?.color || '#9ca3af' }));
+                });
+
+                const totalExpense = computed(() => {
+                    return expenses.value.reduce((sum, item) => {
+                        const cur = item.currency || 'TWD';
+                        let amount = item.amount;
+                        if (cur === 'TWD' && currencyMode.value === 'JPY') amount = item.amount / exchangeRate;
+                        if (cur === 'JPY' && currencyMode.value === 'TWD') amount = item.amount * exchangeRate;
+                        return sum + amount;
+                    }, 0);
+                });
+
+                const safeCurrentDay = computed(() => days.value[activeDayIndex.value] || {});
+                const activeDayDate = computed(() => safeCurrentDay.value.date || '');
+                const currentDayTitle = computed(() => safeCurrentDay.value.location ? `Day ${activeDayIndex.value + 1} | ${safeCurrentDay.value.location}` : '');
 
                 const fetchWeather = async () => {
                      const promises = days.value.map(async (day) => {
                         try {
                             const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${day.lat}&longitude=${day.lon}&current=temperature_2m,weather_code&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_mean&timezone=Asia%2FTokyo`);
                             const data = await res.json();
-                            const idx = 0; 
-                            const code = data.daily.weathercode[idx];
+                            const idx = 0; const code = data.daily.weathercode[idx];
                             let icon = 'fas fa-cloud'; let desc = '多雲'; let snow = false;
-                            if(code <= 1) { icon = 'fas fa-sun'; desc = '晴天'; }
-                            else if(code >= 71) { icon = 'fas fa-snowflake'; desc = '下雪'; snow = true; }
-                            
-                            // Use Current Temp from API directly
+                            if(code <= 1) { icon = 'fas fa-sun'; desc = '晴天'; } else if(code >= 71) { icon = 'fas fa-snowflake'; desc = '下雪'; snow = true; }
                             const currentTemp = Math.round(data.current.temperature_2m);
-                            
-                            return {
-                                currentTemp,
-                                maxTemp: Math.round(data.daily.temperature_2m_max[idx]),
-                                minTemp: Math.round(data.daily.temperature_2m_min[idx]),
-                                precip: data.daily.precipitation_probability_mean[idx],
-                                icon, desc, snow
-                            };
+                            return { currentTemp, maxTemp: Math.round(data.daily.temperature_2m_max[idx]), minTemp: Math.round(data.daily.temperature_2m_min[idx]), precip: data.daily.precipitation_probability_mean[idx], icon, desc, snow };
                         } catch { return { currentTemp: -6, maxTemp: -2, minTemp: -8, precip: 80, icon: 'fas fa-snowflake', desc: '預報載入失敗', snow: true }; }
                      });
                      weatherData.value = await Promise.all(promises);
@@ -587,15 +683,39 @@
 
                 onMounted(() => {
                     document.documentElement.classList.add('dark');
-                    const savedDays = localStorage.getItem('hokkaido_trip_days');
-                    if (savedDays) days.value = JSON.parse(savedDays);
-                    const savedPrep = localStorage.getItem('hokkaido_trip_prep');
-                    if (savedPrep) prepData.value = JSON.parse(savedPrep);
-                    const savedSouvenir = localStorage.getItem('hokkaido_trip_souvenir');
-                    if (savedSouvenir) souvenirList.value = JSON.parse(savedSouvenir);
-                    const savedExpenses = localStorage.getItem('hokkaido_trip_expenses');
-                    if (savedExpenses) expenses.value = JSON.parse(savedExpenses);
+                    try {
+                        const savedDays = localStorage.getItem('hokkaido_trip_days');
+                        if(savedDays) days.value = JSON.parse(savedDays);
+                        
+                        const savedPrep = localStorage.getItem('hokkaido_trip_prep');
+                        if(savedPrep) prepData.value = JSON.parse(savedPrep);
+                        
+                        const savedSouvenir = localStorage.getItem('hokkaido_trip_souvenir');
+                        if(savedSouvenir) souvenirList.value = JSON.parse(savedSouvenir);
+                        
+                        const savedExpenses = localStorage.getItem('hokkaido_trip_expenses');
+                        if(savedExpenses) {
+                            const parsed = JSON.parse(savedExpenses);
+                            expenses.value = parsed.map(ex => ({ ...ex, currency: ex.currency || 'TWD', date: ex.date || '' }));
+                        } else {
+                             // Default expenses
+                             expenses.value = [
+                                { name: '機票預付', amount: 18000, currency: 'TWD', category: 'transport', date: '' },
+                                { name: 'KOKO Hotel', amount: 13474, currency: 'TWD', category: 'hotel', date: '' },
+                                { name: 'KKday一日遊', amount: 3300, currency: 'TWD', category: 'sight', date: '' }
+                            ];
+                        }
+                    } catch (e) {
+                        console.error('Data corrupted, resetting', e);
+                        localStorage.clear();
+                    }
+                    
                     fetchWeather();
+                    
+                    setInterval(() => {
+                        const now = new Date();
+                        currentTime.value = now.toLocaleTimeString('zh-TW', { hour12: false });
+                    }, 1000);
                 });
                 
                 watch(days, (newVal) => localStorage.setItem('hokkaido_trip_days', JSON.stringify(newVal)), { deep: true });
@@ -605,11 +725,13 @@
 
                 return {
                     currentTab, activeDayIndex, isDark, days, expenses, weatherData, tabs, currentTime,
-                    activeDayDate: computed(() => days.value[activeDayIndex.value].date),
-                    currentDayTitle: computed(() => `Day ${activeDayIndex.value + 1} | ${days.value[activeDayIndex.value].location}`),
-                    totalExpense, expenseStats, prepData, souvenirList,
+                    activeDayDate, currentDayTitle, safeCurrentDay,
+                    totalExpense, expenseStats, prepData, souvenirList, currencyMode,
                     toggleDarkMode, changeDay, getCategoryColor, getCategoryIcon, toggleEdit, openMap, openLink, openTenki, addExpense, getExpenseLabel,
-                    addItem, deleteItem, addSouvenir, deleteSouvenir
+                    addItem, deleteItem, addSouvenir, deleteSouvenir, addEvent, deleteEvent,
+                    showExpenseModal, editingExpenseIndex, newExpenseName, newExpenseAmount, newExpenseCurrency, newExpenseCategory, newExpenseDate, openExpenseModal, closeExpenseModal, saveExpense, toggleCurrency, formatCurrency,
+                    showPrepModal, newPrepName, newPrepIcon, activePrepType, openPrepModal, savePrepItem, prepIcons,
+                    fileInput, triggerImageUpload, handleFileChange, selectText
                 };
             }
         }).mount('#app');
